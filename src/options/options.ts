@@ -4,7 +4,12 @@
  */
 
 import { getToken } from '../services/auth'
-import { getPreferences, setPreferences } from '../services/storage'
+import {
+  getPreferences,
+  getQuickSaveEnabled,
+  setPreferences,
+  setQuickSaveEnabled,
+} from '../services/storage'
 import { getTaskLists } from '../services/tasks-api'
 import type { TaskList, UserPreferences } from '../types'
 import { DEFAULT_LIST_ID, DEFAULT_LIST_TITLE, isAppError } from '../types'
@@ -21,6 +26,7 @@ let retryButton: HTMLElement | null
 let signInButton: HTMLElement | null
 let statusMessage: HTMLElement | null
 let errorMessage: HTMLElement | null
+let quickSaveToggle: HTMLInputElement | null
 
 // Current state
 let currentLists: TaskList[] = []
@@ -41,6 +47,7 @@ export function initElements(): void {
   signInButton = document.getElementById('sign-in-button')
   statusMessage = document.getElementById('status-message')
   errorMessage = document.getElementById('error-message')
+  quickSaveToggle = document.getElementById('quick-save-toggle') as HTMLInputElement
 }
 
 /**
@@ -203,6 +210,30 @@ export async function handleSignIn(): Promise<void> {
 }
 
 /**
+ * Handle quick save toggle change.
+ * Saves the preference to session storage.
+ * Exported for testing.
+ */
+export async function handleQuickSaveToggle(): Promise<void> {
+  if (!quickSaveToggle) return
+
+  const enabled = quickSaveToggle.checked
+  await setQuickSaveEnabled(enabled)
+  showStatus(enabled ? 'Quick save enabled!' : 'Quick save disabled', 'success')
+}
+
+/**
+ * Load quick save preference and set toggle state.
+ * Exported for testing.
+ */
+export async function loadQuickSavePreference(): Promise<void> {
+  const enabled = await getQuickSaveEnabled()
+  if (quickSaveToggle) {
+    quickSaveToggle.checked = enabled
+  }
+}
+
+/**
  * Initialize options page
  */
 function init(): void {
@@ -213,6 +244,7 @@ function init(): void {
   refreshButton?.addEventListener('click', () => loadData(true))
   retryButton?.addEventListener('click', () => loadData())
   signInButton?.addEventListener('click', handleSignIn)
+  quickSaveToggle?.addEventListener('change', handleQuickSaveToggle)
 
   // Load initial data
   void loadData()

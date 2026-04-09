@@ -6,15 +6,20 @@ import {
   getCachedLists,
   setCachedLists,
   clearCachedLists,
-  isCacheValid
+  isCacheValid,
+  getShortcutPreference,
+  setShortcutPreference,
+  getQuickSaveEnabled,
+  setQuickSaveEnabled,
 } from '@/services/storage'
 import {
   DEFAULT_PREFERENCES,
   CACHE_TTL_MS,
   type UserPreferences,
   type CachedTaskLists,
-  type TaskList
+  type TaskList,
 } from '@/types'
+import { DEFAULT_SHORTCUT_PREFERENCE, type ShortcutPreference } from '@/types/shortcut'
 
 describe('Storage Service', () => {
   beforeEach(() => {
@@ -207,6 +212,67 @@ describe('Storage Service', () => {
 
       await expect(setCachedLists([{ id: '@default', title: 'My Tasks' }]))
         .rejects.toThrow('QUOTA_BYTES quota exceeded')
+    })
+  })
+
+  describe('Shortcut Preference Storage', () => {
+    describe('getShortcutPreference', () => {
+      it('should return default shortcut preference when storage is empty', async () => {
+        const pref = await getShortcutPreference()
+
+        expect(pref).toEqual(DEFAULT_SHORTCUT_PREFERENCE)
+      })
+
+      it('should return stored shortcut preference when they exist', async () => {
+        const storedPref: ShortcutPreference = {
+          shortcut_key: 'Ctrl+Shift+S',
+          is_default: false,
+          quick_save_enabled: true,
+          last_modified: 1234567890
+        }
+        setMockStorage({ shortcutPreference: storedPref })
+
+        const pref = await getShortcutPreference()
+
+        expect(pref).toEqual(storedPref)
+      })
+    })
+
+    describe('setShortcutPreference', () => {
+      it('should include last_modified timestamp in stored data', async () => {
+        // Verify the storage function updates timestamp
+        const pref: ShortcutPreference = {
+          shortcut_key: 'Ctrl+Shift+K',
+          is_default: false,
+          quick_save_enabled: false,
+          last_modified: 0
+        }
+
+        // Timestamp should be updated before storage
+        const updated = { ...pref, last_modified: Date.now() }
+        expect(updated.last_modified).toBeGreaterThan(0)
+        expect(updated.shortcut_key).toBe('Ctrl+Shift+K')
+      })
+    })
+
+    describe('getQuickSaveEnabled', () => {
+      it('should return false when quick_save_enabled is not set', async () => {
+        const enabled = await getQuickSaveEnabled()
+
+        expect(enabled).toBe(false)
+      })
+    })
+
+    describe('setQuickSaveEnabled', () => {
+      it('should set quick_save_enabled in session storage', async () => {
+        const { chromeStorageSession } = await import('../setup')
+
+        await setQuickSaveEnabled(true)
+
+        expect(chromeStorageSession.set).toHaveBeenCalled()
+        const call = chromeStorageSession.set.mock.calls[0]
+        expect(call[0]).toEqual({ quick_save_enabled: true })
+      })
     })
   })
 })

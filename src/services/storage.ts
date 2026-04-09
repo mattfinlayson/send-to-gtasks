@@ -10,6 +10,7 @@ import {
   type TaskList,
   type UserPreferences,
 } from '../types'
+import { DEFAULT_SHORTCUT_PREFERENCE, type ShortcutPreference } from '../types/shortcut'
 
 /**
  * Get user preferences from storage
@@ -41,6 +42,71 @@ export async function setPreferences(preferences: UserPreferences): Promise<void
     })
   })
 }
+
+// ============================================================================
+// Shortcut Preference Storage
+// ============================================================================
+
+/**
+ * Get shortcut preferences from storage
+ * Returns default preferences if none are stored
+ */
+export async function getShortcutPreference(): Promise<ShortcutPreference> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['shortcutPreference'], (result) => {
+      if (result.shortcutPreference) {
+        resolve(result.shortcutPreference as ShortcutPreference)
+      } else {
+        resolve(DEFAULT_SHORTCUT_PREFERENCE)
+      }
+    })
+  })
+}
+
+/**
+ * Save shortcut preferences to storage
+ */
+export async function setShortcutPreference(preference: ShortcutPreference): Promise<void> {
+  const updated: ShortcutPreference = {
+    ...preference,
+    last_modified: Date.now(),
+  }
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ shortcutPreference: updated }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message))
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+/**
+ * Get quick save preference from session storage (ephemeral)
+ */
+export async function getQuickSaveEnabled(): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.storage.session.get(['quick_save_enabled'], (result) => {
+      resolve(result.quick_save_enabled === true)
+    })
+  })
+}
+
+/**
+ * Set quick save preference in session storage (ephemeral)
+ */
+export async function setQuickSaveEnabled(enabled: boolean): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.session.set({ quick_save_enabled: enabled }, () => {
+      resolve()
+    })
+  })
+}
+
+// ============================================================================
+// Cache Storage
+// ============================================================================
 
 /**
  * Get cached task lists from storage

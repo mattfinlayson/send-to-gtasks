@@ -9,6 +9,15 @@
     "identity",
     "alarms"
   ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T",
+        "mac": "Command+Shift+T"
+      },
+      "description": "Save current page as task"
+    }
+  },
   "oauth2": {
     "client_id": "826876690942-meimo9nertd9kah0ftmk16kk15adl5ma.apps.googleusercontent.com",
     "scopes": [

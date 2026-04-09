@@ -9,6 +9,7 @@
  */
 
 import type { ExtensionMessage } from '../types'
+import { handleShortcutCommand } from './shortcut-handler'
 
 // Service worker lifecycle events
 chrome.runtime.onInstalled.addListener((details) => {
@@ -75,4 +76,9 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
     sendResponse({ success: true })
   }
   return false
+})
+
+// Listen for keyboard shortcut commands from Chrome Command API
+chrome.commands.onCommand.addListener((command: string) => {
+  void handleShortcutCommand(command)
 })

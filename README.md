@@ -7,6 +7,8 @@ A Chrome extension that saves web pages as tasks in Google Tasks with a single c
 ## Features
 
 - **One-click task creation**: Click the extension icon to instantly save the current page
+- **Keyboard shortcut**: Press `Ctrl+Shift+T` (or `Cmd+Shift+T` on Mac) for quick task creation
+- **Quick save mode**: Enable in Options to create tasks directly without the popup
 - **Page info capture**: Automatically uses page title and URL
 - **Task list selection**: Choose which Google Tasks list to save to
 - **Visual feedback**: Badge indicator shows success or error status
@@ -77,6 +79,19 @@ npm run build
 1. Right-click the extension icon > "Options"
 2. Select your preferred task list
 3. Click "Save"
+
+
+### Keyboard Shortcut
+
+1. Press `Ctrl+Shift+T` (Windows/Linux) or `Cmd+Shift+T` (Mac) to save the current page
+2. By default, this opens the popup with the page title and URL pre-filled
+3. Enable **Quick save mode** in Options to create tasks directly with a toast notification
+
+### Customize Keyboard Shortcut
+
+1. Go to `chrome://extensions/shortcuts`
+2. Find "Send to Google Tasks"
+3. Click the shortcut field and enter your preferred key combination
 
 ## Permissions
 

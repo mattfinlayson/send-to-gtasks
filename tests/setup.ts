@@ -183,6 +183,14 @@ const chromeAlarms = {
   }
 }
 
+// Mock chrome.commands
+const chromeCommands = {
+  onCommand: {
+    addListener: vi.fn(),
+    removeListener: vi.fn()
+  }
+}
+
 // Mock chrome.runtime — with onMessage listener capture for triggerMessage()
 let registeredOnMessageListener: ((msg: ExtensionMessage, sender: chrome.runtime.MessageSender, sendResponse: (r: unknown) => void) => boolean | void) | null = null
 
@@ -213,6 +221,7 @@ const chromeMock = {
   tabs: chromeTabs,
   action: chromeAction,
   alarms: chromeAlarms,
+  commands: chromeCommands,
   runtime: chromeRuntime
 }
 

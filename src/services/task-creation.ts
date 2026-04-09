@@ -60,3 +60,17 @@ export async function createTaskFromCurrentPage(): Promise<TaskResponse> {
     throw err
   }
 }
+
+/**
+ * Create a task from the current page for quick save mode
+ * Simplified version that returns just the title for toast feedback
+ * @returns Object with title if successful, null otherwise
+ */
+export async function createTaskForCurrentPage(): Promise<{ title: string } | null> {
+  try {
+    const task = await createTaskFromCurrentPage()
+    return { title: task.title }
+  } catch {
+    return null
+  }
+}
