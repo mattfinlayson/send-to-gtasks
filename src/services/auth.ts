@@ -1,0 +1,47 @@
+/**
+ * Auth Service
+ * Handles Google OAuth2 authentication via chrome.identity API
+ */
+
+/**
+ * Get an OAuth2 access token
+ * @param interactive - If true, show consent UI if needed. Use true for user-initiated actions.
+ * @returns The access token, or null if not available
+ * @throws Error if authentication fails with an error
+ */
+export async function getToken(interactive: boolean): Promise<string | null> {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive }, (token) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message))
+        return
+      }
+      resolve(token ?? null)
+    })
+  })
+}
+
+/**
+ * Remove a cached token, forcing refresh on next getToken call
+ * Call this when API returns 401 to invalidate the expired token
+ */
+export async function removeToken(token: string): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.identity.removeCachedAuthToken({ token }, () => {
+      resolve()
+    })
+  })
+}
+
+/**
+ * Check if user is authenticated (has valid cached token)
+ * Uses non-interactive mode to avoid showing consent UI
+ */
+export async function isAuthenticated(): Promise<boolean> {
+  try {
+    const token = await getToken(false)
+    return token !== null
+  } catch {
+    return false
+  }
+}

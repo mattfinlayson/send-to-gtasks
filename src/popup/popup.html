@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send to Google Tasks</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="popup-container">
+    <!-- Status indicator -->
+    <div id="status" class="status" role="status" aria-live="polite">
+      <div id="status-icon" class="status-icon" aria-hidden="true"></div>
+      <div id="status-message" class="status-message">Creating task...</div>
+    </div>
+
+    <!-- Error display -->
+    <div id="error-container" class="error-container hidden">
+      <div id="error-message" class="error-message"></div>
+      <button id="retry-button" class="retry-button" aria-label="Retry creating task">Retry</button>
+    </div>
+
+    <!-- Auth required display -->
+    <div id="auth-container" class="auth-container hidden">
+      <p class="auth-message">Sign in to create tasks.</p>
+      <button id="sign-in-button" class="sign-in-button" aria-label="Sign in with Google">Sign In with Google</button>
+    </div>
+
+    <!-- Success display -->
+    <div id="success-container" class="success-container hidden">
+      <div class="success-icon" aria-hidden="true">&#10003;</div>
+      <div id="success-message" class="success-message">Task created!</div>
+    </div>
+  </div>
+
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "name": "send-to-gtask",
+  "version": "1.0.0",
+  "description": "Chrome Extension to save web pages as Google Tasks",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage",
+    "type-check": "tsc --noEmit --project tsconfig.test.json",
+    "lint": "biome lint src/",
+    "format": "biome format --write src/",
+    "check": "biome check src/ && tsc --noEmit --project tsconfig.test.json && vitest run --coverage",
+    "zip": "npm run build && cd dist && zip -r ../send-to-gtask.zip . && cd ..",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "chrome-extension",
+    "google-tasks",
+    "productivity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.10",
+    "@types/chrome": "^0.0.260",
+    "@types/node": "^25.5.2",
+    "@vitest/coverage-v8": "^1.6.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.0.2",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.0",
+    "vite-plugin-static-copy": "^3.1.4",
+    "vitest": "^1.6.0"
+  }
+}

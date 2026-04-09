@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send to Google Tasks - Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div id="options-container">
+    <h1>Send to Google Tasks</h1>
+
+    <!-- Loading state -->
+    <div id="loading" class="loading">
+      <div class="spinner" aria-hidden="true"></div>
+      <span>Loading task lists...</span>
+    </div>
+
+    <!-- Main content -->
+    <div id="content" class="content hidden">
+      <div class="section">
+        <label for="list-select" class="label">Default task list:</label>
+        <select id="list-select" class="select">
+          <option value="@default">My Tasks</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button id="save-button" class="button primary" aria-label="Save selected task list">Save</button>
+        <button id="refresh-button" class="button secondary" aria-label="Refresh task lists from Google">Refresh Lists</button>
+      </div>
+
+      <div id="status-message" class="status-message hidden" role="status" aria-live="polite"></div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error" class="error hidden">
+      <p id="error-message"></p>
+      <button id="retry-button" class="button primary" aria-label="Retry loading task lists">Retry</button>
+    </div>
+
+    <!-- Auth required state -->
+    <div id="auth-required" class="auth-required hidden">
+      <p>Please sign in to your Google account to configure task lists.</p>
+      <button id="sign-in-button" class="button primary" aria-label="Sign in with Google">Sign In</button>
+    </div>
+  </div>
+
+  <script type="module" src="options.ts"></script>
+</body>
+</html>
