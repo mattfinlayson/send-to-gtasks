@@ -1,5 +1,7 @@
 # Send to Google Tasks
 
+![CI](https://img.shields.io/github/actions/workflow/status/mattfinlayson/send-to-gtask/ci.yml?style=flat-square)
+
 A Chrome extension that saves web pages as tasks in Google Tasks with a single click.
 
 ## Features
@@ -86,6 +88,32 @@ This extension requires:
 - **alarms**: To clear the success/error badge on the extension icon a few seconds after task creation. No background scheduling occurs.
 
 The extension only accesses Google Tasks data - it cannot read or modify any other Google services.
+
+## GitHub Actions CI/CD
+
+This project uses GitHub Actions for continuous integration and releases.
+
+### CI Workflow
+
+Runs automatically on every pull request to `main`:
+- Biome linting
+- TypeScript type checking
+- Vitest tests with coverage
+
+### Release Workflow
+
+Runs automatically when a GitHub Release is published:
+- Validates version matches between git tag and `src/manifest.json`
+- Builds the production extension
+- Creates and uploads `send-to-gtask.zip` as a release asset
+
+### Creating a Release
+
+1. Update version in `src/manifest.json`
+2. Create git tag: `git tag v1.0.0 && git push origin v1.0.0`
+3. Go to GitHub Releases and click "Draft a new release"
+4. Select your tag and publish
+5. The workflow will build and attach the ZIP automatically
 
 ## Development
 

@@ -14,6 +14,33 @@ This project is a Chrome Extension (Manifest V3) for sending tasks to Google Tas
 ## Commands
 
 - `npm run check` — quality gate (Biome lint/format, TypeScript check)
+- `npm run build` — production build with Vite
+- `npm run zip` — create distributable ZIP for Chrome Web Store
+- `npm run test` — run Vitest tests
+- `npm run type-check` — TypeScript type checking
+- `npm run lint` — Biome linting
+
+## GitHub Actions
+
+### Workflows
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | PR to `main` | Lint, type-check, tests |
+| `release.yml` | Release published | Build, zip, upload artifact |
+
+### Release Process
+
+1. Update `src/manifest.json` version
+2. Create git tag: `git tag v1.0.0 && git push origin v1.0.0`
+3. Publish GitHub Release
+4. Workflow validates version match, builds, and attaches `send-to-gtask.zip`
+
+### Gotchas
+
+- Tag format must be `v{version}` (e.g., `v1.0.0`)
+- Manifest version must match tag (without `v` prefix)
+- No Google OAuth secrets needed for CI/CD (release workflow builds only, doesn't upload to store)
 
 ## Gotchas
 
