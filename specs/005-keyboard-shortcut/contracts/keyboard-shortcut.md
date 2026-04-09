@@ -24,7 +24,7 @@ chrome.commands.onCommand.addListener((command: string) => {
 
 ```typescript
 interface ShortcutPreference {
-  shortcut_key: string;      // e.g., "Ctrl+Shift+T"
+  shortcut_key: string;      // e.g., "Ctrl+Shift+K"
   quick_save_enabled: boolean; // false = show popup
 }
 ```
@@ -39,14 +39,14 @@ interface ShortcutPreference {
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `shortcut_key` | text input | "Ctrl+Shift+T" | Current shortcut |
+| `shortcut_key` | text input | "Ctrl+Shift+K" | Current shortcut |
 | `quick_save_enabled` | checkbox | false | Skip popup on shortcut |
 
 **Actions**:
 | Action | Trigger | Effect |
 |--------|---------|--------|
 | Save | Click "Save" | Validates and persists shortcut |
-| Reset | Click "Reset to Default" | Restores "Ctrl+Shift+T" |
+| Reset | Click "Reset to Default" | Restores "Ctrl+Shift+K" |
 
 ### Quick Save Toast Contract
 
@@ -75,5 +75,5 @@ interface QuickSaveToast {
 |----------|---------|
 | Quick save success | "Task created: {page title}" |
 | Quick save error | "Failed to create task. Check your connection." |
-| Invalid shortcut | "Invalid shortcut. Use format: Ctrl+Shift+T" |
+| Invalid shortcut | "Invalid shortcut. Use format: Ctrl+Shift+K" |
 | Conflict detected | "This shortcut conflicts with Chrome. Choose another." |

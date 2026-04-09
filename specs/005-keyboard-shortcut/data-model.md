@@ -8,7 +8,7 @@ Stores the user's keyboard shortcut configuration.
 
 | Field | Type | Constraints | Notes |
 |-------|------|------------|-------|
-| `shortcut_key` | `string` | Non-empty, valid Chrome shortcut format | e.g., "Ctrl+Shift+T" |
+| `shortcut_key` | `string` | Non-empty, valid Chrome shortcut format | e.g., "Ctrl+Shift+K" |
 | `is_default` | `boolean` | — | `true` if using manifest default |
 | `quick_save_enabled` | `boolean` | — | `false` by default (shows popup) |
 | `last_modified` | `number` | Unix timestamp | Auto-updated on change |
@@ -56,7 +56,7 @@ Commands are defined in `manifest.json` and registered with Chrome:
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+T",
+        "default": "Ctrl+Shift+K",
         "mac": "Command+Shift+T"
       },
       "description": "Save current page as task"
@@ -76,7 +76,7 @@ Commands are defined in `manifest.json` and registered with Chrome:
 ## Validation Rules
 
 1. **Shortcut must not be empty**
-2. **Shortcut must be a valid Chrome shortcut format** (e.g., "Ctrl+Shift+T")
+2. **Shortcut must be a valid Chrome shortcut format** (e.g., "Ctrl+Shift+K")
 3. **Shortcut must not conflict with Chrome built-in shortcuts**
    - Chrome provides `commands.update()` with conflict detection
    - Conflicts reported via `commands.onChanged` event

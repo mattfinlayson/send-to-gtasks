@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add keyboard shortcut support to allow power users to quickly save the current page as a task using `Ctrl+Shift+T`.
+Add keyboard shortcut support to allow power users to quickly save the current page as a task using `Ctrl+Shift+K`.
 
 ## Key Technologies
 
@@ -22,7 +22,7 @@ Add command definition:
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+T",
+        "default": "Ctrl+Shift+K",
         "mac": "Command+Shift+T"
       },
       "description": "Save current page as task"
@@ -69,7 +69,7 @@ For quick-save mode, show toast popup that auto-closes:
 
 ## Testing
 
-1. Press `Ctrl+Shift+T` → popup opens with page title/URL
+1. Press `Ctrl+Shift+K` → popup opens with page title/URL
 2. Enable quick save in options → press shortcut → toast appears
 3. Change shortcut in options → new shortcut triggers action
 4. Try invalid shortcut → error shown

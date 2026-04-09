@@ -50,6 +50,6 @@ For quick-save feedback without popup:
 ## Summary
 
 - Use **Chrome Command API** for shortcut registration and handling
-- Default: `Ctrl+Shift+T` (as specified)
+- Default: `Ctrl+Shift+K` (as specified)
 - Shortcut persists via Chrome's native mechanism
 - Quick-save toast: minimal auto-closing popup

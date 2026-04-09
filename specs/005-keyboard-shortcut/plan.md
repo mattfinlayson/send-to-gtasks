@@ -5,7 +5,7 @@
 
 ## Summary
 
-Add keyboard shortcut support (`Ctrl+Shift+T` default) to quickly save the current page as a Google Task. Users can:
+Add keyboard shortcut support (`Ctrl+Shift+K` default) to quickly save the current page as a Google Task. Users can:
 1. Press the shortcut to open the popup with pre-filled page title/URL (default behavior)
 2. Enable "quick save" mode to create tasks directly with toast confirmation
 3. Customize the shortcut in the options page with conflict detection

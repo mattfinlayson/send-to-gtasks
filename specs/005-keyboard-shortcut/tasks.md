@@ -17,7 +17,7 @@
 
 **Purpose**: Add keyboard shortcut command to Chrome manifest
 
-- [X] T001 Update manifest.json to add `_execute_action` command definition with `Ctrl+Shift+T` default
+- [X] T001 Update manifest.json to add `_execute_action` command definition with `Ctrl+Shift+K` default
 - [X] T002 Add command description "Save current page as task" to manifest.json
 - [X] T003 Verify manifest.json is valid Chrome Extension manifest format
 
@@ -40,9 +40,9 @@
 
 ## Phase 3: User Story 1 - Quick Save via Keyboard (Priority: P1) 🎯 MVP
 
-**Goal**: Press Ctrl+Shift+T to trigger task creation (popup or direct)
+**Goal**: Press Ctrl+Shift+K to trigger task creation (popup or direct)
 
-**Independent Test**: Press Ctrl+Shift+T on any webpage → popup opens with page title/URL pre-filled, OR (with quick save enabled) task created directly with toast
+**Independent Test**: Press Ctrl+Shift+K on any webpage → popup opens with page title/URL pre-filled, OR (with quick save enabled) task created directly with toast
 
 ### Tests for User Story 1 (Write FIRST - TDD) ⚠️
 
@@ -214,6 +214,6 @@ Task: "Create toast popup logic in src/popup/toast.ts"
 **MVP Scope**: User Story 1 (Phase 3) after completing Setup + Foundational
 
 **Independent Test Criteria by Story**:
-- US1: Press Ctrl+Shift+T → popup opens OR (with quick save) task created + toast shown
+- US1: Press Ctrl+Shift+K → popup opens OR (with quick save) task created + toast shown
 - US2: Open options → change shortcut → new shortcut works
 - US3: Enter Ctrl+T → conflict warning shown → save prevented

@@ -3,7 +3,7 @@
 **Feature Branch**: `feature/keyboard-shortcut`  
 **Created**: 2026-04-09  
 **Status**: Draft  
-**Input**: User description: "1. Keyboard shortcut - Power users would love a hotkey (e.g., Ctrl+Shift+T) to quickly save
+**Input**: User description: "1. Keyboard shortcut - Power users would love a hotkey (e.g., Ctrl+Shift+K) to quickly save
  2. Keyboard shortcut customization - Let users choose their own shortcut"
 
 ## Clarifications
@@ -26,7 +26,7 @@ A power user is browsing a webpage and wants to quickly save the current page as
 
 **Acceptance Scenarios**:
 
-1. **Given** the extension is installed and enabled with default settings, **When** the user presses the default shortcut (Ctrl+Shift+T) on any webpage, **Then** the popup opens with page title and URL pre-filled
+1. **Given** the extension is installed and enabled with default settings, **When** the user presses the default shortcut (Ctrl+Shift+K) on any webpage, **Then** the popup opens with page title and URL pre-filled
 2. **Given** the extension is installed and enabled with "quick save" preference enabled, **When** the user presses the shortcut, **Then** the task is created directly without showing the popup
 3. **Given** the user has enabled quick save mode, **When** they press the shortcut while on a website with restricted keyboard shortcuts, **Then** the extension still captures the shortcut and creates the task directly
 
@@ -90,7 +90,7 @@ A user attempts to set a shortcut that conflicts with Chrome's built-in shortcut
 ### Key Entities *(include if feature involves data)*
 
 - **ShortcutPreference**: Stores the user's keyboard shortcut configuration
-  - `shortcut_key`: The key or key combination (e.g., "Ctrl+Shift+T")
+  - `shortcut_key`: The key or key combination (e.g., "Ctrl+Shift+K")
   - `is_default`: Boolean indicating if using default shortcut
   - `quick_save_enabled`: Boolean indicating if tasks should be created directly without showing popup
   - `last_modified`: Timestamp of last modification
