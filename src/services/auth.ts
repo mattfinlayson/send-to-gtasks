@@ -3,9 +3,6 @@
  * Handles Google OAuth2 authentication via chrome.identity API
  */
 
-const CLIENT_ID = '826876690942-meimo9nertd9kah0ftmk16kk15adl5ma.apps.googleusercontent.com'
-const SCOPES = 'https://www.googleapis.com/auth/tasks'
-
 /**
  * Get an OAuth2 access token.
  * - interactive=true: Forces fresh auth by removing cached token first, then prompts
