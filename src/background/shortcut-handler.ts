@@ -8,7 +8,7 @@ import { createTaskForCurrentPage } from '../services/task-creation'
 
 /**
  * Handle the keyboard shortcut command.
- * Called when user presses the configured shortcut (Ctrl+Shift+T by default).
+ * Called when user presses the configured shortcut (Ctrl+Shift+K by default).
  *
  * @param command - The command name from Chrome Command API
  */

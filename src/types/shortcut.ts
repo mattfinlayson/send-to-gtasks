@@ -20,7 +20,7 @@ export interface ShortcutPreference {
 /**
  * Default shortcut key
  */
-export const DEFAULT_SHORTCUT_KEY = 'Ctrl+Shift+T'
+export const DEFAULT_SHORTCUT_KEY = 'Ctrl+Shift+K'
 
 /**
  * Default shortcut preference values
