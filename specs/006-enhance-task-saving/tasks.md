@@ -115,11 +115,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T034 [P] [US4] Implement syncOfflineQueue() in src/services/offline-queue.ts
-- [ ] T035 [P] [US4] Implement queue cleanup (discard after 24h) in src/services/offline-queue.ts
+- [X] T034 [P] [US4] Implement syncOfflineQueue() in src/services/offline-queue.ts
+- [X] T035 [P] [US4] Implement queue cleanup (discard after 24h) in src/services/offline-queue.ts
 - [ ] T036 [US4] Add chrome.alarms.create() for periodic queue sync in src/background/service-worker.ts
 - [ ] T037 [US4] Handle alarm.onAlarm listener in src/background/service-worker.ts
-- [ ] T038 [US4] Update task-creation.ts to enqueue on API failure
+- [X] T038 [US4] Update task-creation.ts to enqueue on API failure
 - [ ] T039 [US4] Show pending count in popup UI
 - [ ] T040 [US4] Add queue initialization on extension install/update in service-worker.ts
 
