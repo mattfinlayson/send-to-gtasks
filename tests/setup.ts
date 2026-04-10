@@ -125,6 +125,18 @@ const chromeIdentity = {
       callback()
     }
     return Promise.resolve()
+  }),
+  launchWebAuthFlow: vi.fn((
+    details: { url: string; interactive: boolean },
+    callback?: (responseUrl?: string) => void
+  ) => {
+    // Default: return a URL with a mock token
+    const mockToken = 'mock-access-token'
+    const mockRedirectUrl = `https://test-extension-id.chromiumapp.org/callback#access_token=${mockToken}&token_type=Bearer`
+    if (callback) {
+      callback(mockRedirectUrl)
+    }
+    return Promise.resolve(mockRedirectUrl)
   })
 }
 
@@ -286,6 +298,18 @@ export function resetChromeMocks(): void {
       callback(result)
     }
     return Promise.resolve(result)
+  })
+
+  chromeIdentity.launchWebAuthFlow.mockImplementation((
+    details: { url: string; interactive: boolean },
+    callback?: (responseUrl?: string) => void
+  ) => {
+    // Use same token as getAuthToken for consistency
+    const mockRedirectUrl = `https://test-extension-id.chromiumapp.org/callback#access_token=${DEFAULT_MOCK_TOKEN}&token_type=Bearer`
+    if (callback) {
+      callback(mockRedirectUrl)
+    }
+    return Promise.resolve(mockRedirectUrl)
   })
 
   // Restore default chromeTabs.query implementation

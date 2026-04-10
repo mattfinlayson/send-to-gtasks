@@ -233,31 +233,23 @@ describe('Task Creation Flow Integration', () => {
   // T018: createTaskFromCurrentPage throws TasksAPIError with code 'AUTH_REQUIRED' (not generic Error) when getToken returns null
   describe('null token handling', () => {
     it('should throw TasksAPIError with AUTH_REQUIRED when token is null', async () => {
-      // Make getToken return null
-      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        if (callback) callback({})
-        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
-      })
+      // Make launchWebAuthFlow return undefined (user cancels or fails)
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
 
       await expect(createTaskFromCurrentPage())
         .rejects.toMatchObject({ code: 'AUTH_REQUIRED' })
     })
 
     it('should re-throw original AUTH_REQUIRED error when refresh token is also null', async () => {
-      // First getToken returns a token, second (after removeToken) returns null
-      let callCount = 0
+      // Make launchWebAuthFlow return undefined (user cancels or fails)
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
+      // Also make getAuthToken return null for non-interactive check
       chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        callCount++
-        if (callCount === 1) {
-          if (callback) callback({ token: DEFAULT_MOCK_TOKEN })
-          return Promise.resolve({ token: DEFAULT_MOCK_TOKEN })
-        }
-        // Second call returns null
         if (callback) callback({})
         return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
       })
 
-      // First fetch returns 401
+      // First fetch returns 401 (would trigger retry, but token is null)
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 401,

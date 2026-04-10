@@ -219,16 +219,13 @@ export async function handleSignIn(): Promise<void> {
  * Exported for testing.
  */
 export async function handleSignOut(): Promise<void> {
-  console.log('[Options] Sign out clicked')
   try {
     const token = await getToken(false)
-    console.log('[Options] Got token for removal:', token ? 'yes' : 'no')
     if (token) {
       await removeToken(token)
-      console.log('[Options] Token removed from cache')
     }
-  } catch (error) {
-    console.error('[Options] Sign out error:', error)
+  } catch {
+    // Ignore errors - proceed with sign out anyway
   }
   showState('auth')
 }

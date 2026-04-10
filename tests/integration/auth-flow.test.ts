@@ -22,20 +22,15 @@ describe('Auth Flow Integration', () => {
       const isAuthed = await isAuthenticated()
       expect(isAuthed).toBe(false)
 
-      // Now restore normal mock for interactive sign-in
-      chromeIdentity.getAuthToken.mockImplementation((details: { interactive: boolean }, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        if (details.interactive) {
-          // User completes sign-in
-          if (callback) callback({ token: 'new-user-token' })
-          return Promise.resolve({ token: 'new-user-token' })
-        }
-        if (callback) callback({})
-        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
-      })
+      // Mock launchWebAuthFlow for interactive sign-in
+      const newToken = 'new-user-token'
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(
+        `https://extension.chromiumapp.org/callback#access_token=${newToken}&token_type=Bearer`
+      )
 
       // Interactive sign-in should succeed
       const token = await getToken(true)
-      expect(token).toBe('new-user-token')
+      expect(token).toBe(newToken)
     })
   })
 
@@ -70,7 +65,7 @@ describe('Auth Flow Integration', () => {
         expect.any(Function)
       )
 
-      // Then get a fresh token
+      // Then get a fresh token non-interactively
       chromeIdentity.getAuthToken.mockImplementation((details, callback) => {
         if (callback) callback({ token: newToken })
         return Promise.resolve({ token: newToken })
@@ -83,7 +78,7 @@ describe('Auth Flow Integration', () => {
 
   describe('User revokes access flow', () => {
     it('should handle revoked access gracefully', async () => {
-      // Simulate revoked access error
+      // Simulate revoked access error on getAuthToken
       chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
         chromeRuntime.lastError = { message: 'OAuth2 not granted or revoked' }
         if (callback) callback({})
@@ -94,8 +89,11 @@ describe('Auth Flow Integration', () => {
       const isAuthed = await isAuthenticated()
       expect(isAuthed).toBe(false)
 
-      // getToken with interactive should throw
-      await expect(getToken(true)).rejects.toThrow('OAuth2 not granted or revoked')
+      // getToken with interactive should return null (launchWebAuthFlow handles errors gracefully)
+      chromeIdentity.launchWebAuthFlow.mockRejectedValue(new Error('OAuth2 not granted or revoked'))
+      
+      const token = await getToken(true)
+      expect(token).toBeNull()
     })
   })
 })

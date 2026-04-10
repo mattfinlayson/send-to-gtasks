@@ -3,32 +3,83 @@
  * Handles Google OAuth2 authentication via chrome.identity API
  */
 
+const CLIENT_ID = '826876690942-meimo9nertd9kah0ftmk16kk15adl5ma.apps.googleusercontent.com'
+const SCOPES = 'https://www.googleapis.com/auth/tasks'
+const REDIRECT_URI = `https://${chrome.runtime.id}.chromiumapp.org`
+
 /**
- * Get an OAuth2 access token
- * @param interactive - If true, show consent UI if needed. Use true for user-initiated actions.
+ * Get the OAuth authorization URL
+ */
+function getAuthUrl(forceConsent: boolean = false): string {
+  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
+  url.searchParams.set('client_id', CLIENT_ID)
+  url.searchParams.set('redirect_uri', REDIRECT_URI)
+  url.searchParams.set('response_type', 'token')
+  url.searchParams.set('scope', SCOPES)
+  url.searchParams.set('include_granted_scopes', 'true')
+  if (forceConsent) {
+    url.searchParams.set('prompt', 'consent')
+  }
+  return url.toString()
+}
+
+/**
+ * Parse access token from the redirect URL
+ */
+function parseTokenFromUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url)
+    const fragment = parsed.hash.substring(1)
+    const params = new URLSearchParams(fragment)
+    return params.get('access_token')
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Get an OAuth2 access token.
+ * - interactive=true: Uses launchWebAuthFlow with force consent (always shows OAuth screen)
+ * - interactive=false: Uses getAuthToken with cached token (silent)
  * @returns The access token, or null if not available
- * @throws Error if authentication fails with an error
  */
 export async function getToken(interactive: boolean): Promise<string | null> {
-  console.log('[Auth] getToken called, interactive:', interactive)
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive }, (result) => {
-      console.log('[Auth] getAuthToken result:', typeof result === 'string' ? 'string: ' + result : JSON.stringify(result))
-      if (chrome.runtime.lastError) {
-        console.log('[Auth] lastError:', chrome.runtime.lastError.message)
-        reject(new Error(chrome.runtime.lastError.message))
-        return
-      }
-      // Handle both old API (returns string) and new API (returns GetAuthTokenResult object)
-      if (typeof result === 'string') {
-        resolve(result || null)
-      } else if (result && typeof result === 'object' && 'token' in result) {
-        resolve(result.token ?? null)
-      } else {
-        resolve(null)
-      }
+  if (!interactive) {
+    // Non-interactive mode - use cached token via getAuthToken
+    return new Promise((resolve) => {
+      chrome.identity.getAuthToken({ interactive: false }, (result) => {
+        if (chrome.runtime.lastError) {
+          resolve(null)
+          return
+        }
+        // Handle both old API (returns string) and new API (returns GetAuthTokenResult object)
+        if (typeof result === 'string') {
+          resolve(result || null)
+        } else if (result && typeof result === 'object' && 'token' in result) {
+          resolve(result.token ?? null)
+        } else {
+          resolve(null)
+        }
+      })
     })
-  })
+  }
+
+  // Interactive mode - use launchWebAuthFlow with force consent
+  const url = getAuthUrl(true)
+
+  try {
+    const resultUrl = await chrome.identity.launchWebAuthFlow({
+      url,
+      interactive: true,
+    })
+
+    if (resultUrl) {
+      return parseTokenFromUrl(resultUrl)
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 /**

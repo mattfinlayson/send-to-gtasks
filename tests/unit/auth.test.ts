@@ -3,7 +3,6 @@ import {
   resetChromeMocks,
   chromeIdentity,
   chromeRuntime,
-  simulateAuthError,
   simulateNoToken,
   DEFAULT_MOCK_TOKEN
 } from '../setup'
@@ -19,19 +18,28 @@ describe('Auth Service', () => {
   })
 
   describe('getToken', () => {
-    it('should return token when authentication succeeds', async () => {
+    it('should use launchWebAuthFlow when interactive=true', async () => {
+      // Mock launchWebAuthFlow to return a URL with a token
+      const mockToken = 'mock-access-token'
+      const mockRedirectUrl = `https://extension-id.chromiumapp.org/callback#access_token=${mockToken}&token_type=Bearer`
+      
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(mockRedirectUrl)
+
       const token = await getToken(true)
 
-      expect(token).toBe(DEFAULT_MOCK_TOKEN)
-      expect(chromeIdentity.getAuthToken).toHaveBeenCalledWith(
-        { interactive: true },
-        expect.any(Function)
+      expect(token).toBe(mockToken)
+      expect(chromeIdentity.launchWebAuthFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining('accounts.google.com'),
+          interactive: true,
+        })
       )
     })
 
-    it('should pass interactive option correctly', async () => {
-      await getToken(false)
+    it('should use getAuthToken when interactive=false', async () => {
+      const token = await getToken(false)
 
+      expect(token).toBe(DEFAULT_MOCK_TOKEN)
       expect(chromeIdentity.getAuthToken).toHaveBeenCalledWith(
         { interactive: false },
         expect.any(Function)
@@ -46,14 +54,20 @@ describe('Auth Service', () => {
       expect(token).toBeNull()
     })
 
-    it('should throw error when chrome.runtime.lastError is set', async () => {
-      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        chromeRuntime.lastError = { message: 'OAuth2 not granted or revoked' }
-        if (callback) callback({})
-        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
-      })
+    it('should return null when launchWebAuthFlow is cancelled', async () => {
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
 
-      await expect(getToken(true)).rejects.toThrow('OAuth2 not granted or revoked')
+      const token = await getToken(true)
+
+      expect(token).toBeNull()
+    })
+
+    it('should return null when launchWebAuthFlow throws', async () => {
+      chromeIdentity.launchWebAuthFlow.mockRejectedValue(new Error('User cancelled'))
+
+      const token = await getToken(true)
+
+      expect(token).toBeNull()
     })
   })
 
