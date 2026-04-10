@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quick Save</title>
   <style>
+    :root {
+      /* Light mode */
+      --bg-toast: #323232;
+      --text-primary: #ffffff;
+      --accent-success: #34a853;
+      --accent-error: #ea4335;
+      --accent-warning: #fbbc04;
+      --accent-info: #4285f4;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-toast: #1f1f1f;
+        --text-primary: #e8eaed;
+      }
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -19,24 +36,74 @@
 
     #toast {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 8px;
       padding: 12px 16px;
-      background: #323232;
-      color: #fff;
+      background: var(--bg-toast);
+      color: var(--text-primary);
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
       font-size: 14px;
-      max-width: 280px;
+      max-width: 320px;
       animation: slideIn 0.2s ease-out;
     }
 
     #toast.success {
-      border-left: 4px solid #34a853;
+      border-left: 4px solid var(--accent-success);
     }
 
     #toast.error {
-      border-left: 4px solid #ea4335;
+      border-left: 4px solid var(--accent-error);
+    }
+
+    #toast.queued {
+      border-left: 4px solid var(--accent-warning);
+    }
+
+    #toast.duplicate {
+      border-left: 4px solid var(--accent-warning);
+    }
+
+    #toast-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    #toast-message {
+      flex: 1;
+    }
+
+    #toast-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .toast-button {
+      pointer-events: auto;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .toast-button.primary {
+      background: var(--accent-info);
+      color: white;
+    }
+
+    .toast-button.secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .toast-button:hover {
+      opacity: 0.9;
     }
 
     @keyframes slideIn {
@@ -66,7 +133,11 @@
 </head>
 <body>
   <div id="toast" class="success">
-    <span id="message">Task created</span>
+    <div id="toast-header">
+      <span id="toast-icon"></span>
+      <span id="toast-message">Task created</span>
+    </div>
+    <div id="toast-actions"></div>
   </div>
   <script type="module" src="toast.ts"></script>
 </body>

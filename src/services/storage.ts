@@ -7,6 +7,9 @@ import {
   CACHE_TTL_MS,
   type CachedTaskLists,
   DEFAULT_PREFERENCES,
+  type OfflineQueue,
+  type QueuedTask,
+  type SavedUrlIndex,
   type TaskList,
   type UserPreferences,
 } from '../types'
@@ -168,4 +171,162 @@ export function isCacheValid(cache: CachedTaskLists | null): cache is CachedTask
   }
   const age = Date.now() - cache.cachedAt
   return age < CACHE_TTL_MS
+}
+
+// ============================================================================
+// Offline Queue Storage
+// ============================================================================
+
+/**
+ * Get the offline queue from storage
+ * Returns empty queue if none exists
+ */
+export async function getOfflineQueue(): Promise<OfflineQueue> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['offlineQueue'], (result) => {
+      if (result.offlineQueue) {
+        resolve(result.offlineQueue as OfflineQueue)
+      } else {
+        resolve({ tasks: [], lastSyncAt: 0 })
+      }
+    })
+  })
+}
+
+/**
+ * Save the offline queue to storage
+ */
+export async function setOfflineQueue(queue: OfflineQueue): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ offlineQueue: queue }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message))
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+/**
+ * Add a task to the offline queue
+ */
+export async function enqueueTask(
+  task: Omit<QueuedTask, 'id' | 'createdAt' | 'lastRetryAt' | 'retryCount' | 'status'>,
+): Promise<string> {
+  const id = crypto.randomUUID()
+  const queuedTask: QueuedTask = {
+    ...task,
+    id,
+    createdAt: Date.now(),
+    lastRetryAt: 0,
+    retryCount: 0,
+    status: 'pending',
+  }
+  const queue = await getOfflineQueue()
+  queue.tasks.push(queuedTask)
+  await setOfflineQueue(queue)
+  return id
+}
+
+/**
+ * Remove a task from the offline queue
+ */
+export async function dequeueTask(id: string): Promise<void> {
+  const queue = await getOfflineQueue()
+  queue.tasks = queue.tasks.filter((t) => t.id !== id)
+  await setOfflineQueue(queue)
+}
+
+/**
+ * Update a task's status in the queue
+ */
+export async function updateQueuedTaskStatus(
+  id: string,
+  status: QueuedTask['status'],
+  incrementRetry = false,
+): Promise<void> {
+  const queue = await getOfflineQueue()
+  const task = queue.tasks.find((t) => t.id === id)
+  if (task) {
+    task.status = status
+    task.lastRetryAt = Date.now()
+    if (incrementRetry) {
+      task.retryCount++
+    }
+  }
+  await setOfflineQueue(queue)
+}
+
+// ============================================================================
+// Saved URL Index Storage
+// ============================================================================
+
+/**
+ * Get the saved URL index from storage
+ * Returns empty index if none exists
+ */
+export async function getSavedUrls(): Promise<SavedUrlIndex> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['savedUrlIndex'], (result) => {
+      if (result.savedUrlIndex) {
+        resolve(result.savedUrlIndex as SavedUrlIndex)
+      } else {
+        resolve({ urls: [], lastUpdated: 0 })
+      }
+    })
+  })
+}
+
+/**
+ * Save the saved URL index to storage
+ */
+export async function setSavedUrls(index: SavedUrlIndex): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ savedUrlIndex: index }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message))
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+/**
+ * Add a URL to the saved URL index
+ */
+export async function addSavedUrl(url: string): Promise<void> {
+  const index = await getSavedUrls()
+  const normalizedUrl = normalizeUrl(url)
+  if (!index.urls.includes(normalizedUrl)) {
+    index.urls.push(normalizedUrl)
+    index.lastUpdated = Date.now()
+    await setSavedUrls(index)
+  }
+}
+
+/**
+ * Check if a URL is in the saved URL index
+ */
+export async function isUrlSaved(url: string): Promise<boolean> {
+  const index = await getSavedUrls()
+  const normalizedUrl = normalizeUrl(url)
+  return index.urls.includes(normalizedUrl)
+}
+
+/**
+ * Normalize URL for comparison (remove trailing slash, lowercase)
+ */
+function normalizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    // Remove trailing slash
+    let normalized = parsed.href.endsWith('/') ? parsed.href.slice(0, -1) : parsed.href
+    // Remove www prefix for comparison
+    normalized = normalized.replace(/^https?:\/\/www\./, 'https://')
+    return normalized.toLowerCase()
+  } catch {
+    return url.toLowerCase()
+  }
 }

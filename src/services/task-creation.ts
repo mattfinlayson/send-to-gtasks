@@ -6,8 +6,106 @@
 import { isAppError, MAX_NOTES_LENGTH, type TaskResponse } from '../types'
 import { getToken, removeToken } from './auth'
 import { extractPageInfo, getCurrentTab } from './page-capture'
-import { getPreferences } from './storage'
+import { enqueueTask, getPreferences } from './storage'
 import { createTask, TasksAPIError } from './tasks-api'
+
+/**
+ * Options for creating a task
+ */
+export interface CreateTaskOptions {
+  title: string
+  url?: string
+  notes?: string
+  dueDate?: string
+  taskListId?: string
+}
+
+/**
+ * Result of task creation that distinguishes between success and queued
+ */
+export interface CreateTaskResult {
+  success: true
+  task: TaskResponse
+}
+
+export interface CreateTaskQueuedResult {
+  success: false
+  queued: true
+}
+
+/**
+ * Create a task with extended options
+ * @param options Task creation options
+ * @returns The created task response or queued status
+ */
+export async function createTaskFromOptions(
+  options: CreateTaskOptions,
+): Promise<CreateTaskResult | CreateTaskQueuedResult> {
+  // Get auth token
+  const token = await getToken(true)
+  if (!token) {
+    throw new TasksAPIError('AUTH_REQUIRED', 'Authentication required. Please sign in.', false)
+  }
+
+  // Get task list ID
+  const listId = options.taskListId || (await getPreferences()).selectedListId
+
+  // Build notes with URL marker
+  let notes = options.notes || ''
+  if (options.url) {
+    const urlMarker = `\n\n[Saved from: ${options.url}]`
+    notes = notes ? `${notes}${urlMarker}` : urlMarker.slice(2)
+  }
+
+  // Truncate notes to API limit
+  if (notes.length > MAX_NOTES_LENGTH) {
+    notes = `${notes.slice(0, MAX_NOTES_LENGTH - 15)}... (truncated)`
+  }
+
+  const taskRequest: { title: string; notes?: string; due?: string } = {
+    title: options.title,
+    notes: notes || undefined,
+  }
+
+  // Add due date if provided (RFC 3339 format)
+  if (options.dueDate) {
+    // Ensure RFC 3339 format with time component
+    taskRequest.due = options.dueDate.includes('T')
+      ? options.dueDate
+      : `${options.dueDate}T00:00:00.000Z`
+  }
+
+  // Create the task, with offline queue support
+  try {
+    const task = await createTask(token, listId, taskRequest)
+    return { success: true, task }
+  } catch (err) {
+    // Handle auth errors
+    if (isAppError(err) && err.code === 'AUTH_REQUIRED') {
+      await removeToken(token)
+      const freshToken = await getToken(true)
+      if (!freshToken) {
+        throw err
+      }
+      const task = await createTask(freshToken, listId, taskRequest)
+      return { success: true, task }
+    }
+
+    // Queue task for later if network error (offline support)
+    if (isAppError(err) && err.code === 'NETWORK_ERROR' && err.retryable) {
+      await enqueueTask({
+        title: options.title,
+        url: options.url || '',
+        notes: options.notes || '',
+        dueDate: options.dueDate,
+        taskListId: listId,
+      })
+      return { success: false, queued: true }
+    }
+
+    throw err
+  }
+}
 
 /**
  * Create a task from the current page
