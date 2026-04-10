@@ -19,8 +19,8 @@ let loadingElement: HTMLElement | null
 let contentElement: HTMLElement | null
 let errorElement: HTMLElement | null
 let authRequiredElement: HTMLElement | null
+let accountEmailElement: HTMLElement | null
 let listSelectElement: HTMLSelectElement | null
-let saveButton: HTMLElement | null
 let refreshButton: HTMLElement | null
 let retryButton: HTMLElement | null
 let signInButton: HTMLElement | null
@@ -28,7 +28,7 @@ let logoutButton: HTMLElement | null
 let statusMessage: HTMLElement | null
 let errorMessage: HTMLElement | null
 let quickSaveToggle: HTMLInputElement | null
-let shortcutDisplayElement: HTMLElement | null
+let modifierKeyElement: HTMLElement | null
 
 // Current state
 let currentLists: TaskList[] = []
@@ -42,8 +42,8 @@ export function initElements(): void {
   contentElement = document.getElementById('content')
   errorElement = document.getElementById('error')
   authRequiredElement = document.getElementById('auth-required')
+  accountEmailElement = document.getElementById('account-email')
   listSelectElement = document.getElementById('list-select') as HTMLSelectElement
-  saveButton = document.getElementById('save-button')
   refreshButton = document.getElementById('refresh-button')
   retryButton = document.getElementById('retry-button')
   signInButton = document.getElementById('sign-in-button')
@@ -51,7 +51,7 @@ export function initElements(): void {
   statusMessage = document.getElementById('status-message')
   errorMessage = document.getElementById('error-message')
   quickSaveToggle = document.getElementById('quick-save-toggle') as HTMLInputElement
-  shortcutDisplayElement = document.getElementById('shortcut-display')
+  modifierKeyElement = document.getElementById('modifier-key-1')
 }
 
 /**
@@ -80,19 +80,42 @@ function showState(state: 'loading' | 'content' | 'error' | 'auth'): void {
 }
 
 /**
- * Show status message
+ * Show status message with fade-out animation
  */
 function showStatus(message: string, type: 'success' | 'error'): void {
   if (statusMessage) {
     statusMessage.textContent = message
     statusMessage.className = `status-message ${type}`
     statusMessage.classList.remove('hidden')
+    statusMessage.classList.remove('fade-out')
 
     if (type === 'success') {
       setTimeout(() => {
-        statusMessage?.classList.add('hidden')
-      }, 3000)
+        statusMessage?.classList.add('fade-out')
+        setTimeout(() => {
+          statusMessage?.classList.add('hidden')
+        }, 300)
+      }, 2000)
     }
+  }
+}
+
+/**
+ * Load user profile info (email) and display it
+ */
+async function loadAccountInfo(): Promise<void> {
+  if (!accountEmailElement) return
+
+  try {
+    const userInfo = await chrome.identity.getProfileUserInfo()
+    if (userInfo.email) {
+      accountEmailElement.textContent = userInfo.email
+    } else {
+      accountEmailElement.textContent = 'Signed in'
+    }
+  } catch (error) {
+    console.error('Failed to get profile info:', error)
+    accountEmailElement.textContent = 'Signed in'
   }
 }
 
@@ -112,6 +135,35 @@ function populateListDropdown(lists: TaskList[], selectedId: string): void {
     option.selected = list.id === selectedId
     select.appendChild(option)
   })
+}
+
+/**
+ * Save selected list preference.
+ * Called automatically when dropdown changes.
+ */
+export async function savePreference(): Promise<void> {
+  if (!listSelectElement) return
+
+  const selectedId = listSelectElement.value
+  const selectedList = currentLists.find((l) => l.id === selectedId)
+
+  if (!selectedList) {
+    showStatus('Please select a valid list', 'error')
+    return
+  }
+
+  const preferences: UserPreferences = {
+    selectedListId: selectedList.id,
+    selectedListTitle: selectedList.title,
+  }
+
+  try {
+    await setPreferences(preferences)
+    showStatus('Saved', 'success')
+  } catch (error) {
+    console.error('Failed to save preferences:', error)
+    showStatus('Failed to save', 'error')
+  }
 }
 
 /**
@@ -149,8 +201,12 @@ export async function loadData(forceRefresh: boolean = false): Promise<void> {
         selectedListId: defaultList?.id || DEFAULT_LIST_ID,
         selectedListTitle: defaultList?.title || DEFAULT_LIST_TITLE,
       })
-      showStatus('Previously selected list was not found. Reset to default.', 'error')
+      showStatus('Previously selected list not found. Reset to default.', 'error')
     }
+
+    // Load account info and quick save preference
+    await loadAccountInfo()
+    await loadQuickSavePreference()
 
     showState('content')
   } catch (error) {
@@ -162,38 +218,9 @@ export async function loadData(forceRefresh: boolean = false): Promise<void> {
     }
 
     if (errorMessage) {
-      errorMessage.textContent = 'Failed to load task lists. Please try again.'
+      errorMessage.textContent = 'Failed to load. Please try again.'
     }
     showState('error')
-  }
-}
-
-/**
- * Save selected list preference.
- * Exported for testing.
- */
-export async function savePreference(): Promise<void> {
-  if (!listSelectElement) return
-
-  const selectedId = listSelectElement.value
-  const selectedList = currentLists.find((l) => l.id === selectedId)
-
-  if (!selectedList) {
-    showStatus('Please select a valid list', 'error')
-    return
-  }
-
-  const preferences: UserPreferences = {
-    selectedListId: selectedList.id,
-    selectedListTitle: selectedList.title,
-  }
-
-  try {
-    await setPreferences(preferences)
-    showStatus('Settings saved!', 'success')
-  } catch (error) {
-    console.error('Failed to save preferences:', error)
-    showStatus('Failed to save settings. Please try again.', 'error')
   }
 }
 
@@ -209,7 +236,11 @@ export async function handleSignIn(): Promise<void> {
     }
   } catch (error) {
     console.error('Sign in failed:', error)
-    showStatus('Sign in failed. Please try again.', 'error')
+    // Show error in auth state
+    const authPrompt = document.querySelector('.auth-prompt')
+    if (authPrompt) {
+      authPrompt.textContent = 'Sign in failed. Please try again.'
+    }
   }
 }
 
@@ -238,12 +269,12 @@ export async function handleQuickSaveToggle(): Promise<void> {
   const enabled = quickSaveToggle.checked
   try {
     await setQuickSaveEnabled(enabled)
-    showStatus(enabled ? 'Quick save enabled!' : 'Quick save disabled', 'success')
+    showStatus(enabled ? 'Quick save enabled' : 'Quick save disabled', 'success')
   } catch (error) {
     console.error('Failed to save quick save preference:', error)
     // Revert toggle to previous state
     quickSaveToggle.checked = !enabled
-    showStatus('Failed to save preference', 'error')
+    showStatus('Failed to save', 'error')
   }
 }
 
@@ -259,36 +290,67 @@ export async function loadQuickSavePreference(): Promise<void> {
 }
 
 /**
- * Get the platform-specific modifier key label
- * Returns "Ctrl" for Windows/Linux and "Cmd" for Mac
+ * Get the platform-specific modifier key
+ * Returns "Cmd" for Mac, "Ctrl" otherwise
  */
-function getModifierKeyLabel(): string {
-  // Use modern API with fallback to deprecated one
-  // userAgentData is not available in all environments, so check for it
+function getModifierKey(): string {
   const ua = navigator as Navigator & { userAgentData?: { platform?: string } }
   const platform = ua.userAgentData?.platform ?? navigator.platform
   return platform.toLowerCase().includes('mac') ? 'Cmd' : 'Ctrl'
 }
 
 /**
- * Initialize options page
+ * Set up the keyboard shortcut display
  */
-function init(): void {
-  initElements()
+function setupShortcutDisplay(): void {
+  const modifier = getModifierKey()
 
-  // Set platform-specific shortcut display
-  if (shortcutDisplayElement) {
-    const modifierKey = getModifierKeyLabel()
-    shortcutDisplayElement.textContent = `${modifierKey}+Shift+K`
+  if (modifierKeyElement) {
+    modifierKeyElement.textContent = modifier
   }
+}
+
+/**
+ * Set refresh button loading state
+ */
+function setRefreshLoading(loading: boolean): void {
+  if (refreshButton) {
+    if (loading) {
+      refreshButton.classList.add('loading')
+    } else {
+      refreshButton.classList.remove('loading')
+    }
+  }
+}
+
+/**
+ * Initialize options page
+ * Exported for testing.
+ */
+export function init(): void {
+  initElements()
+  setupShortcutDisplay()
 
   // Set up event listeners
-  saveButton?.addEventListener('click', savePreference)
-  refreshButton?.addEventListener('click', () => loadData(true))
-  retryButton?.addEventListener('click', () => loadData())
-  signInButton?.addEventListener('click', handleSignIn)
-  logoutButton?.addEventListener('click', handleSignOut)
-  quickSaveToggle?.addEventListener('change', handleQuickSaveToggle)
+  listSelectElement?.addEventListener('change', () => {
+    void savePreference()
+  })
+  refreshButton?.addEventListener('click', () => {
+    setRefreshLoading(true)
+    void loadData(true).finally(() => setRefreshLoading(false))
+  })
+  retryButton?.addEventListener('click', () => {
+    void loadData()
+  })
+  signInButton?.addEventListener('click', () => {
+    void handleSignIn()
+  })
+  logoutButton?.addEventListener('click', () => {
+    void handleSignOut()
+  })
+  quickSaveToggle?.addEventListener('change', () => {
+    void handleQuickSaveToggle()
+  })
 
   // Load initial data
   void loadData()

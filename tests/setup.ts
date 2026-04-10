@@ -140,6 +140,15 @@ const chromeIdentity = {
   }),
   getRedirectURL: vi.fn((path?: string) => {
     return `https://test-extension-id.chromiumapp.org/${path || ''}`
+  }),
+  getProfileUserInfo: vi.fn((
+    callback?: (userInfo: chrome.identity.ProfileUserInfo) => void
+  ) => {
+    const result: chrome.identity.ProfileUserInfo = { id: '123', email: 'test@example.com' }
+    if (callback) {
+      callback(result)
+    }
+    return Promise.resolve(result)
   })
 }
 
