@@ -87,9 +87,9 @@
 
 ### Tests for User Story 3
 
-- [ ] T023 [P] [US3] Test toast notification display in tests/unit/toast.test.ts
-- [ ] T024 [P] [US3] Test error toast with retry action in tests/unit/toast.test.ts
-- [ ] T025 [P] [US3] Test queued notification in tests/unit/toast.test.ts
+- [X] T023 [P] [US3] Test toast notification display in tests/unit/toast.test.ts
+- [X] T024 [P] [US3] Test error toast with retry action in tests/unit/toast.test.ts
+- [X] T025 [P] [US3] Test queued notification in tests/unit/toast.test.ts
 
 ### Implementation for User Story 3
 
@@ -109,9 +109,9 @@
 
 ### Tests for User Story 4
 
-- [ ] T031 [P] [US4] Test offline queue enqueue/dequeue in tests/unit/offline-queue.test.ts
-- [ ] T032 [P] [US4] Test queue retry logic (3 attempts, 24h expiry) in tests/unit/offline-queue.test.ts
-- [ ] T033 [P] [US4] Test queue sync on alarm trigger in tests/unit/offline-queue.test.ts
+- [X] T031 [P] [US4] Test offline queue enqueue/dequeue in tests/unit/offline-queue.test.ts
+- [X] T032 [P] [US4] Test queue retry logic (3 attempts, 24h expiry) in tests/unit/offline-queue.test.ts
+- [X] T033 [P] [US4] Test queue sync on alarm trigger in tests/unit/offline-queue.test.ts
 
 ### Implementation for User Story 4
 
