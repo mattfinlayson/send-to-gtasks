@@ -27,6 +27,7 @@ let signInButton: HTMLElement | null
 let statusMessage: HTMLElement | null
 let errorMessage: HTMLElement | null
 let quickSaveToggle: HTMLInputElement | null
+let shortcutDisplayElement: HTMLElement | null
 
 // Current state
 let currentLists: TaskList[] = []
@@ -48,6 +49,7 @@ export function initElements(): void {
   statusMessage = document.getElementById('status-message')
   errorMessage = document.getElementById('error-message')
   quickSaveToggle = document.getElementById('quick-save-toggle') as HTMLInputElement
+  shortcutDisplayElement = document.getElementById('shortcut-display')
 }
 
 /**
@@ -234,10 +236,24 @@ export async function loadQuickSavePreference(): Promise<void> {
 }
 
 /**
+ * Get the platform-specific modifier key label
+ * Returns "Ctrl" for Windows/Linux and "Cmd" for Mac
+ */
+function getModifierKeyLabel(): string {
+  return navigator.platform.toLowerCase().includes('mac') ? 'Cmd' : 'Ctrl'
+}
+
+/**
  * Initialize options page
  */
 function init(): void {
   initElements()
+
+  // Set platform-specific shortcut display
+  if (shortcutDisplayElement) {
+    const modifierKey = getModifierKeyLabel()
+    shortcutDisplayElement.textContent = `${modifierKey}+Shift+K`
+  }
 
   // Set up event listeners
   saveButton?.addEventListener('click', savePreference)
