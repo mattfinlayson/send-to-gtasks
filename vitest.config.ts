@@ -22,7 +22,13 @@ export default defineConfig({
         lines: 70
       }
     },
-    include: ['tests/**/*.test.ts']
+    include: ['tests/**/*.test.ts'],
+    reporters: ['verbose'],
+    onConsoleLog: (log) => {
+      if (log.includes('Failed to') || log.includes('Sign in failed')) {
+        return false
+      }
+    }
   },
   resolve: {
     alias: {
