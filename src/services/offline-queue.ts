@@ -3,16 +3,9 @@
  * Handles queuing tasks when offline and syncing when back online
  */
 
-import { MAX_RETRY_COUNT, QUEUE_EXPIRY_MS, type QueuedTask, type OfflineQueue } from '../types'
-import {
-  getOfflineQueue,
-  setOfflineQueue,
-  dequeueTask,
-  updateQueuedTaskStatus,
-  getPreferences,
-} from './storage'
+import { MAX_RETRY_COUNT, QUEUE_EXPIRY_MS } from '../types'
+import { dequeueTask, getOfflineQueue, setOfflineQueue, updateQueuedTaskStatus } from './storage'
 import { createTaskFromOptions } from './task-creation'
-import { getToken } from './auth'
 
 /**
  * Sync all pending tasks in the offline queue
@@ -36,7 +29,7 @@ export async function syncOfflineQueue(): Promise<{ synced: number; failed: numb
         })
         await dequeueTask(task.id)
         synced++
-      } catch (error) {
+      } catch (_error) {
         const shouldRetry = task.retryCount < MAX_RETRY_COUNT
         await updateQueuedTaskStatus(task.id, shouldRetry ? 'pending' : 'failed', true)
         failed++

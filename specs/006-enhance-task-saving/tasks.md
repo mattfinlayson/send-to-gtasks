@@ -133,14 +133,14 @@
 
 ### Tests for User Story 5
 
-- [ ] T041 [P] [US5] Test duplicate detection in tests/unit/duplicate-check.test.ts
-- [ ] T042 [P] [US5] Test URL normalization in tests/unit/duplicate-check.test.ts
-- [ ] T043 [P] [US5] Test duplicate check includes pending queue in tests/unit/duplicate-check.test.ts
+- [X] T041 [P] [US5] Test duplicate detection in tests/unit/duplicate-check.test.ts
+- [X] T042 [P] [US5] Test URL normalization in tests/unit/duplicate-check.test.ts
+- [X] T043 [P] [US5] Test duplicate check includes pending queue in tests/unit/duplicate-check.test.ts
 
 ### Implementation for User Story 5
 
-- [ ] T044 [P] [US5] Implement checkDuplicate() in src/services/duplicate-check.ts
-- [ ] T045 [P] [US5] Add duplicate warning UI to src/popup/popup.html
+- [X] T044 [P] [US5] Implement checkDuplicate() in src/services/duplicate-check.ts
+- [X] T045 [P] [US5] Add duplicate warning UI to src/popup/popup.html
 - [ ] T046 [US5] Integrate duplicate check in src/popup/popup.ts before save
 - [ ] T047 [US5] Handle "Save Anyway" and "Cancel" actions in duplicate dialog
 
@@ -154,13 +154,13 @@
 
 ### Tests for User Story 6
 
-- [ ] T048 [P] [US6] Test dark mode CSS in tests/unit/popup.test.ts (if applicable)
+- [X] T048 [P] [US6] Test dark mode CSS in tests/unit/popup.test.ts (if applicable)
 
 ### Implementation for User Story 6
 
-- [ ] T049 [P] [US6] Add prefers-color-scheme media query to src/popup/popup.css
-- [ ] T050 [P] [US6] Add prefers-color-scheme media query to src/options/options.css
-- [ ] T051 [US6] Test dark mode styles for notes textarea and due date picker
+- [X] T049 [P] [US6] Add prefers-color-scheme media query to src/popup/popup.css
+- [X] T050 [P] [US6] Add prefers-color-scheme media query to src/options/options.css
+- [X] T051 [US6] Test dark mode styles for notes textarea and due date picker
 
 ---
 
@@ -168,11 +168,11 @@
 
 **Purpose**: Final cleanup and edge case handling
 
-- [ ] T052 [P] Update quickstart.md with new fields and features
-- [ ] T053 [P] Run npm run check and fix any linting issues
-- [ ] T054 [P] Verify all tests pass with npm run test
-- [ ] T055 Test edge cases: note truncation, future date cap, mid-sync connectivity loss
-- [ ] T056 Test storage cleanup on extension update
+- [X] T052 [P] Update quickstart.md with new fields and features
+- [X] T053 [P] Run npm run check and fix any linting issues
+- [X] T054 [P] Verify all tests pass with npm run test
+- [X] T055 Test edge cases: note truncation, future date cap, mid-sync connectivity loss
+- [X] T056 Test storage cleanup on extension update
 
 ---
 

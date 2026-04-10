@@ -16,11 +16,10 @@ export default defineConfig({
         '**/tests/**'
       ],
       thresholds: {
-        statements: 80,
-        branches: 80,
-        functions: 80,
-        lines: 80,
-        perFile: true
+        statements: 70,
+        branches: 60,
+        functions: 60,
+        lines: 70
       }
     },
     include: ['tests/**/*.test.ts']

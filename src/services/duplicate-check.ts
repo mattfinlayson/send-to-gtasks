@@ -3,8 +3,7 @@
  * Checks if a URL has already been saved as a task
  */
 
-import { type SavedUrlIndex } from '../types'
-import { getSavedUrls, getOfflineQueue } from './storage'
+import { getOfflineQueue, getSavedUrls } from './storage'
 
 /**
  * Result of a duplicate check

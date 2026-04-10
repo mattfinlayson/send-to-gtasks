@@ -3,8 +3,8 @@
  * Shows temporary notifications for task creation results
  */
 
-import { TOAST_DURATION_MS } from '../types'
 import { setQuickSaveEnabled } from '../services/storage'
+import { TOAST_DURATION_MS } from '../types'
 
 type ToastType = 'success' | 'error' | 'queued' | 'duplicate'
 
@@ -83,7 +83,8 @@ async function init(): Promise<void> {
   const title = decodeURIComponent(params.get('title') || 'Task created')
   const messageParam = params.get('message')
   const message = messageParam ? decodeURIComponent(messageParam) : undefined
-  const duration = params.get('duration') ? parseInt(params.get('duration')!, 10) : undefined
+  const durationParam = params.get('duration')
+  const duration = durationParam ? parseInt(durationParam, 10) : undefined
 
   // Parse actions
   const actions: ToastConfig['actions'] = []

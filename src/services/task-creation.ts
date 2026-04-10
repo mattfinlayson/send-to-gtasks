@@ -4,10 +4,9 @@
  */
 
 import { isAppError, MAX_NOTES_LENGTH, type TaskResponse } from '../types'
-import { enqueueTask } from './storage'
 import { getToken, removeToken } from './auth'
 import { extractPageInfo, getCurrentTab } from './page-capture'
-import { getPreferences } from './storage'
+import { enqueueTask, getPreferences } from './storage'
 import { createTask, TasksAPIError } from './tasks-api'
 
 /**
@@ -45,7 +44,7 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
 
   // Truncate notes to API limit
   if (notes.length > MAX_NOTES_LENGTH) {
-    notes = notes.slice(0, MAX_NOTES_LENGTH - 15) + '... (truncated)'
+    ;`${notes.slice(0, MAX_NOTES_LENGTH - 15)}... (truncated)`
   }
 
   const taskRequest: { title: string; notes?: string; due?: string } = {

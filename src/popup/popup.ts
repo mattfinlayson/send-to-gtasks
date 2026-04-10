@@ -3,8 +3,8 @@
  * Handles the popup UI and task creation flow
  */
 
+import { addSavedUrl } from '../services/storage'
 import { createTaskFromOptions } from '../services/task-creation'
-import { addSavedUrl, getPreferences } from '../services/storage'
 import { isAppError, MAX_NOTES_LENGTH } from '../types'
 
 // DOM Elements
@@ -13,7 +13,6 @@ let notesInput: HTMLTextAreaElement | null
 let notesCounter: HTMLElement | null
 let dueDateInput: HTMLInputElement | null
 let dateWarning: HTMLElement | null
-let saveButton: HTMLButtonElement | null
 let loadingContainer: HTMLElement | null
 let errorContainer: HTMLElement | null
 let errorMessageElement: HTMLElement | null
@@ -30,7 +29,6 @@ export function initElements(): void {
   notesCounter = document.getElementById('notes-counter')
   dueDateInput = document.getElementById('due-date-picker') as HTMLInputElement
   dateWarning = document.getElementById('date-warning')
-  saveButton = document.getElementById('save-button') as HTMLButtonElement
   loadingContainer = document.getElementById('loading-container')
   errorContainer = document.getElementById('error-container')
   errorMessageElement = document.getElementById('error-message')
@@ -184,7 +182,7 @@ export function getErrorMessage(error: unknown): string {
 async function createTaskWithForm(): Promise<void> {
   // Get current tab info
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  if (!tab || !tab.url || !tab.title) {
+  if (!tab?.url || !tab?.title) {
     showError('Could not access the current page.')
     return
   }
