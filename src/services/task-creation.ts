@@ -110,7 +110,8 @@ export async function createTaskFromOptions(
 /**
  * Create a task from the current page
  * This is the main flow: get tab info -> get preferences -> create task
- * Handles 401 token expiry with a single retry after token refresh.
+ * Delegates to createTaskFromOptions for consistent handling of notes format,
+ * offline queue, and error handling.
  * @returns The created task response
  * @throws TasksAPIError if authentication fails or API call fails
  */
@@ -124,46 +125,22 @@ export async function createTaskFromCurrentPage(): Promise<TaskResponse> {
   // Extract page info
   const pageInfo = extractPageInfo(tab)
 
-  // Get user preferences for target list
-  const preferences = await getPreferences()
-  const listId = preferences.selectedListId
-
-  // Get auth token (interactive to prompt if needed)
-  const token = await getToken(true)
-  if (!token) {
-    throw new TasksAPIError('AUTH_REQUIRED', 'Authentication required. Please sign in.', false)
-  }
-
-  // Build notes with URL marker (consistent with createTaskFromOptions)
-  let notes = `
-
-[Saved from: ${pageInfo.url}]`
-
-  // Truncate notes to API limit
-  if (notes.length > MAX_NOTES_LENGTH) {
-    notes = `${notes.slice(0, MAX_NOTES_LENGTH - 15)}... (truncated)`
-  }
-
-  const taskRequest = {
+  // Delegate to createTaskFromOptions for consistent behavior:
+  // - Proper notes formatting with URL marker
+  // - Offline queue support for network errors
+  // - Token refresh handling
+  const result = await createTaskFromOptions({
     title: pageInfo.title,
-    notes,
+    url: pageInfo.url,
+  })
+
+  if (!result.success) {
+    // This shouldn't happen with createTaskFromCurrentPage since we don't
+    // pass notes, but handle it just in case
+    throw new Error('Unexpected queued result')
   }
 
-  // Create the task, with a single retry on 401 (expired token)
-  try {
-    return await createTask(token, listId, taskRequest)
-  } catch (err) {
-    if (isAppError(err) && err.code === 'AUTH_REQUIRED') {
-      // Token expired — remove it and get a fresh one
-      await removeToken(token)
-      const freshToken = await getToken(true)
-      if (!freshToken) {
-        throw err
-      }
-      return await createTask(freshToken, listId, taskRequest)
-    }
-    throw err
-  }
+  return result.task
 }
 
 /**

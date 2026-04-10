@@ -18,15 +18,16 @@ const SYNC_LOCK_KEY = 'offlineQueueSyncLock'
  */
 async function tryAcquireSyncLock(): Promise<boolean> {
   const result = await chrome.storage.session.get([SYNC_LOCK_KEY])
-  if (result[SYNC_LOCK_KEY]) {
-    // Another sync is in progress
-    return false
+  const existing = result[SYNC_LOCK_KEY] as number | undefined
+  if (existing && existing > Date.now()) {
+    return false // another sync is in progress and lock hasn't expired
   }
   // Try to set the lock with a 30-second timeout
-  await chrome.storage.session.set({ [SYNC_LOCK_KEY]: Date.now() + 30000 })
+  const expiry = Date.now() + 30000
+  await chrome.storage.session.set({ [SYNC_LOCK_KEY]: expiry })
   // Double-check we got the lock (another process might have beaten us)
   const verify = await chrome.storage.session.get([SYNC_LOCK_KEY])
-  return verify[SYNC_LOCK_KEY] === Date.now() + 30000
+  return verify[SYNC_LOCK_KEY] === expiry
 }
 
 /**

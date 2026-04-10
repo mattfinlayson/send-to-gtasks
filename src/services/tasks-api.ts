@@ -140,7 +140,7 @@ export async function getTaskLists(
   }
 
   const data = await response.json()
-  const lists: TaskList[] = data.items || []
+  const lists: TaskList[] = Array.isArray(data.items) ? data.items : []
 
   // Cache the results
   await setCachedLists(lists)
