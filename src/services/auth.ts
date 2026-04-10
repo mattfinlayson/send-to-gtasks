@@ -10,8 +10,11 @@
  * @throws Error if authentication fails with an error
  */
 export async function getToken(interactive: boolean): Promise<string | null> {
+  console.log('[Auth] getToken called, interactive:', interactive)
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive }, (result) => {
+      console.log('[Auth] getAuthToken callback, lastError:', chrome.runtime.lastError)
+      console.log('[Auth] getAuthToken result:', result)
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message))
         return

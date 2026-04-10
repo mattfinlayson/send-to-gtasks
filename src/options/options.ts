@@ -200,13 +200,15 @@ export async function savePreference(): Promise<void> {
  * Exported for testing.
  */
 export async function handleSignIn(): Promise<void> {
+  console.log('[Options] Sign in button clicked')
   try {
     const token = await getToken(true)
+    console.log('[Options] Got token:', token ? 'success' : 'null')
     if (token) {
       await loadData()
     }
   } catch (error) {
-    console.error('Sign in failed:', error)
+    console.error('[Options] Sign in failed:', error)
     showStatus('Sign in failed. Please try again.', 'error')
   }
 }
