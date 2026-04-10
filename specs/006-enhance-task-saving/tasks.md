@@ -71,11 +71,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Add due date picker to src/popup/popup.html with id="due-date-picker"
-- [ ] T019 [P] [US2] Add due date picker styling to src/popup/popup.css
-- [ ] T020 [US2] Handle due date field in src/popup/popup.ts, validate range
-- [ ] T021 [US2] Update createTask() in src/services/task-creation.ts to include due date (RFC 3339 format)
-- [ ] T022 [US2] Show warning when past date selected (but allow save)
+- [X] T018 [P] [US2] Add due date picker to src/popup/popup.html with id="due-date-picker"
+- [X] T019 [P] [US2] Add due date picker styling to src/popup/popup.css
+- [X] T020 [US2] Handle due date field in src/popup/popup.ts, validate range
+- [X] T021 [US2] Update createTask() in src/services/task-creation.ts to include due date (RFC 3339 format)
+- [X] T022 [US2] Show warning when past date selected (but allow save)
 
 ---
 
@@ -93,8 +93,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Extend src/popup/toast.html to support success/error/queued types
-- [ ] T027 [P] [US3] Extend src/popup/toast.ts to handle notification types and retry action
+- [X] T026 [P] [US3] Extend src/popup/toast.html to support success/error/queued types
+- [X] T027 [P] [US3] Extend src/popup/toast.ts to handle notification types and retry action
 - [ ] T028 [US3] Update src/popup/popup.ts to show success toast after task creation
 - [ ] T029 [US3] Update error handling in src/services/task-creation.ts to show error toast with retry
 - [ ] T030 [US3] Add queued notification when task saved offline
