@@ -18,25 +18,21 @@ describe('Auth Service', () => {
   })
 
   describe('getToken', () => {
-    it('should use getAuthToken when interactive=true', async () => {
-      // Mock getAuthToken to return a token when interactive=true
-      chromeIdentity.getAuthToken.mockImplementation((details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        const params = details as { interactive: boolean }
-        if (params.interactive) {
-          if (callback) callback({ token: 'interactive-token' })
-          return Promise.resolve({ token: 'interactive-token' } as chrome.identity.GetAuthTokenResult)
-        }
-        // Fallback to default mock
-        if (callback) callback({ token: DEFAULT_MOCK_TOKEN })
-        return Promise.resolve({ token: DEFAULT_MOCK_TOKEN } as chrome.identity.GetAuthTokenResult)
-      })
+    it('should use launchWebAuthFlow when interactive=true', async () => {
+      // Mock launchWebAuthFlow to return a URL with a token
+      const mockToken = 'mock-access-token'
+      const mockRedirectUrl = `https://extension-id.chromiumapp.org/callback#access_token=${mockToken}&token_type=Bearer`
+      
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(mockRedirectUrl)
 
       const token = await getToken(true)
 
-      expect(token).toBe('interactive-token')
-      expect(chromeIdentity.getAuthToken).toHaveBeenCalledWith(
-        { interactive: true },
-        expect.any(Function)
+      expect(token).toBe(mockToken)
+      expect(chromeIdentity.launchWebAuthFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining('accounts.google.com'),
+          interactive: true,
+        })
       )
     })
 
@@ -58,27 +54,20 @@ describe('Auth Service', () => {
       expect(token).toBeNull()
     })
 
-    it('should remove cached token and get fresh one when interactive=true', async () => {
-      // Mock: getAuthToken returns a token, then after remove, returns another
-      let callCount = 0
-      chromeIdentity.getAuthToken.mockImplementation((details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        const params = details as { interactive: boolean }
-        callCount++
-        if (params.interactive === false) {
-          // Non-interactive call - returns cached token
-          if (callback) callback({ token: 'cached-token' })
-          return Promise.resolve({ token: 'cached-token' } as chrome.identity.GetAuthTokenResult)
-        }
-        // Interactive call
-        if (callback) callback({ token: 'new-token-after-consent' })
-        return Promise.resolve({ token: 'new-token-after-consent' } as chrome.identity.GetAuthTokenResult)
-      })
+    it('should return null when launchWebAuthFlow is cancelled', async () => {
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
 
       const token = await getToken(true)
 
-      expect(token).toBe('new-token-after-consent')
-      expect(chromeIdentity.removeCachedAuthToken).toHaveBeenCalled()
-      expect(chromeIdentity.getAuthToken).toHaveBeenCalledTimes(2)
+      expect(token).toBeNull()
+    })
+
+    it('should return null when launchWebAuthFlow throws', async () => {
+      chromeIdentity.launchWebAuthFlow.mockRejectedValue(new Error('User cancelled'))
+
+      const token = await getToken(true)
+
+      expect(token).toBeNull()
     })
   })
 

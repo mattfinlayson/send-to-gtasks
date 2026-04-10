@@ -233,22 +233,16 @@ describe('Task Creation Flow Integration', () => {
   // T018: createTaskFromCurrentPage throws TasksAPIError with code 'AUTH_REQUIRED' (not generic Error) when getToken returns null
   describe('null token handling', () => {
     it('should throw TasksAPIError with AUTH_REQUIRED when token is null', async () => {
-      // Make getAuthToken return null (user cancels or no token)
-      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        if (callback) callback({})
-        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
-      })
+      // Make launchWebAuthFlow return undefined (user cancels or fails)
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
 
       await expect(createTaskFromCurrentPage())
         .rejects.toMatchObject({ code: 'AUTH_REQUIRED' })
     })
 
     it('should re-throw original AUTH_REQUIRED error when refresh token is also null', async () => {
-      // Make getAuthToken return null for both checks
-      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
-        if (callback) callback({})
-        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
-      })
+      // Make launchWebAuthFlow return undefined (user cancels or fails)
+      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
 
       // First fetch returns 401 (would trigger retry, but token is null)
       mockFetch.mockResolvedValueOnce({
