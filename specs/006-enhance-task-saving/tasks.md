@@ -15,9 +15,9 @@
 
 **Purpose**: Add new types and storage keys for enhanced features
 
-- [ ] T001 [P] Add QueuedTask and OfflineQueue types to src/types/index.ts
-- [ ] T002 [P] Add OfflineQueue storage keys to src/services/storage.ts (getOfflineQueue, setOfflineQueue, enqueueTask, dequeueTask)
-- [ ] T003 [P] Add SavedUrlIndex storage keys to src/services/storage.ts (getSavedUrls, addSavedUrl)
+- [X] T001 [P] Add QueuedTask and OfflineQueue types to src/types/index.ts
+- [X] T002 [P] Add OfflineQueue storage keys to src/services/storage.ts (getOfflineQueue, setOfflineQueue, enqueueTask, dequeueTask)
+- [X] T003 [P] Add SavedUrlIndex storage keys to src/services/storage.ts (getSavedUrls, addSavedUrl)
 
 ---
 
@@ -27,11 +27,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Extend TaskSaveForm interface in src/types/index.ts to include notes and dueDate fields
-- [ ] T005 [P] Add ToastNotification types to src/types/index.ts (success, error, queued, duplicate)
-- [ ] T006 Create offline-queue.ts service in src/services/offline-queue.ts
-- [ ] T007 [P] Create duplicate-check.ts service in src/services/duplicate-check.ts
-- [ ] T008 [P] Add dark mode CSS variables to src/popup/popup.css and src/options/options.css
+- [X] T004 [P] Extend TaskSaveForm interface in src/types/index.ts to include notes and dueDate fields
+- [X] T005 [P] Add ToastNotification types to src/types/index.ts (success, error, queued, duplicate)
+- [X] T006 Create offline-queue.ts service in src/services/offline-queue.ts
+- [X] T007 [P] Create duplicate-check.ts service in src/services/duplicate-check.ts
+- [X] T008 [P] Add dark mode CSS variables to src/popup/popup.css and src/options/options.css
 
 ---
 
@@ -50,11 +50,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Add notes textarea to src/popup/popup.html with id="notes-input"
-- [ ] T012 [P] [US1] Add notes field styling to src/popup/popup.css
-- [ ] T013 [US1] Handle notes field in src/popup/popup.ts, pass to createTask()
-- [ ] T014 [US1] Update createTask() in src/services/task-creation.ts to include notes in API call
-- [ ] T015 [US1] Add notes to saved URL index in src/services/storage.ts
+- [X] T011 [P] [US1] Add notes textarea to src/popup/popup.html with id="notes-input"
+- [X] T012 [P] [US1] Add notes field styling to src/popup/popup.css
+- [X] T013 [US1] Handle notes field in src/popup/popup.ts, pass to createTask()
+- [X] T014 [US1] Update createTask() in src/services/task-creation.ts to include notes in API call
+- [X] T015 [US1] Add notes to saved URL index in src/services/storage.ts
 
 ---
 

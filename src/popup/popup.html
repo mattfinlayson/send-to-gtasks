@@ -8,22 +8,49 @@
 </head>
 <body>
   <div id="popup-container">
-    <!-- Status indicator -->
-    <div id="status" class="status" role="status" aria-live="polite">
-      <div id="status-icon" class="status-icon" aria-hidden="true"></div>
-      <div id="status-message" class="status-message">Creating task...</div>
+    <!-- Form for task creation -->
+    <form id="task-form" class="task-form">
+      <div class="form-group">
+        <label for="notes-input" class="field-label">Notes (optional)</label>
+        <textarea 
+          id="notes-input" 
+          class="notes-input" 
+          placeholder="Add notes..."
+          rows="3"
+          maxlength="1024"
+          aria-describedby="notes-counter"
+        ></textarea>
+        <div id="notes-counter" class="char-counter">0/1024</div>
+      </div>
+
+      <div class="form-group">
+        <label for="due-date-picker" class="field-label">Due date (optional)</label>
+        <input 
+          type="date" 
+          id="due-date-picker" 
+          class="date-input"
+          aria-describedby="date-warning"
+        >
+        <div id="date-warning" class="date-warning hidden">Note: Date is in the past</div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="save-button" class="save-button">Save Task</button>
+      </div>
+    </form>
+
+    <!-- Loading state -->
+    <div id="loading-container" class="loading-container hidden">
+      <div class="status">
+        <div class="status-icon" aria-hidden="true"></div>
+        <div id="loading-message" class="status-message">Creating task...</div>
+      </div>
     </div>
 
     <!-- Error display -->
     <div id="error-container" class="error-container hidden">
       <div id="error-message" class="error-message"></div>
       <button id="retry-button" class="retry-button" aria-label="Retry creating task">Retry</button>
-    </div>
-
-    <!-- Auth required display -->
-    <div id="auth-container" class="auth-container hidden">
-      <p class="auth-message">Sign in to create tasks.</p>
-      <button id="sign-in-button" class="sign-in-button" aria-label="Sign in with Google">Sign In with Google</button>
     </div>
 
     <!-- Success display -->

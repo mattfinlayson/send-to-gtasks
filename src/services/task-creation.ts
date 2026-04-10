@@ -10,6 +10,73 @@ import { getPreferences } from './storage'
 import { createTask, TasksAPIError } from './tasks-api'
 
 /**
+ * Options for creating a task
+ */
+export interface CreateTaskOptions {
+  title: string
+  url?: string
+  notes?: string
+  dueDate?: string
+  taskListId?: string
+}
+
+/**
+ * Create a task with extended options
+ * @param options Task creation options
+ * @returns The created task response
+ */
+export async function createTaskFromOptions(options: CreateTaskOptions): Promise<TaskResponse> {
+  // Get auth token
+  const token = await getToken(true)
+  if (!token) {
+    throw new TasksAPIError('AUTH_REQUIRED', 'Authentication required. Please sign in.', false)
+  }
+
+  // Get task list ID
+  const listId = options.taskListId || (await getPreferences()).selectedListId
+
+  // Build notes with URL marker
+  let notes = options.notes || ''
+  if (options.url) {
+    const urlMarker = `\n\n[Saved from: ${options.url}]`
+    notes = notes ? notes + urlMarker : urlMarker.slice(2)
+  }
+
+  // Truncate notes to API limit
+  if (notes.length > MAX_NOTES_LENGTH) {
+    notes = notes.slice(0, MAX_NOTES_LENGTH - 15) + '... (truncated)'
+  }
+
+  const taskRequest: { title: string; notes?: string; due?: string } = {
+    title: options.title,
+    notes: notes || undefined,
+  }
+
+  // Add due date if provided (RFC 3339 format)
+  if (options.dueDate) {
+    // Ensure RFC 3339 format with time component
+    taskRequest.due = options.dueDate.includes('T')
+      ? options.dueDate
+      : `${options.dueDate}T00:00:00.000Z`
+  }
+
+  // Create the task
+  try {
+    return await createTask(token, listId, taskRequest)
+  } catch (err) {
+    if (isAppError(err) && err.code === 'AUTH_REQUIRED') {
+      await removeToken(token)
+      const freshToken = await getToken(true)
+      if (!freshToken) {
+        throw err
+      }
+      return await createTask(freshToken, listId, taskRequest)
+    }
+    throw err
+  }
+}
+
+/**
  * Create a task from the current page
  * This is the main flow: get tab info -> get preferences -> create task
  * Handles 401 token expiry with a single retry after token refresh.

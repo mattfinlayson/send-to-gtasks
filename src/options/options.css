@@ -1,4 +1,55 @@
 /* Options page styles */
+:root {
+  /* Light mode (default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #f8f9fa;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --accent-primary: #4285f4;
+  --accent-hover: #3367d6;
+  --border-color: #dadce0;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --success-bg: #e6f4ea;
+  --success-text: #137333;
+  --error-bg: #fce8e6;
+  --error-text: #c5221f;
+  --disabled-bg: #f1f3f4;
+  --disabled-text: #5f6368;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode */
+    --bg-primary: #1f1f1f;
+    --bg-secondary: #121212;
+    --bg-tertiary: #2d2d2d;
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --accent-primary: #8ab4f8;
+    --accent-hover: #aecbfa;
+    --border-color: #3c4043;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --success-bg: #143428;
+    --success-text: #81c995;
+    --error-bg: #3e2723;
+    --error-text: #f28b82;
+    --disabled-bg: #3c4043;
+    --disabled-text: #9aa0a6;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    /* High contrast mode */
+    --bg-primary: Canvas;
+    --bg-secondary: Canvas;
+    --text-primary: CanvasText;
+    --text-secondary: CanvasText;
+    --border-color: CanvasText;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -8,8 +59,8 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
-  background: #f5f5f5;
-  color: #333;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -17,9 +68,9 @@ body {
 }
 
 #options-container {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 24px;
   width: 100%;
   max-width: 400px;
@@ -28,7 +79,7 @@ body {
 h1 {
   font-size: 18px;
   font-weight: 600;
-  color: #202124;
+  color: var(--text-primary);
   margin-bottom: 24px;
 }
 
@@ -40,7 +91,7 @@ h1 {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #5f6368;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
@@ -48,15 +99,16 @@ h1 {
   width: 100%;
   padding: 10px 12px;
   font-size: 14px;
-  border: 1px solid #dadce0;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
 .select:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent-primary);
   box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
 }
 
@@ -77,26 +129,26 @@ h1 {
 }
 
 .button:focus-visible {
-  outline: 2px solid #4285f4;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
 .button.primary {
-  background: #4285f4;
-  color: white;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
 }
 
 .button.primary:hover {
-  background: #3367d6;
+  background: var(--accent-hover);
 }
 
 .button.secondary {
-  background: #f1f3f4;
-  color: #5f6368;
+  background: var(--disabled-bg);
+  color: var(--disabled-text);
 }
 
 .button.secondary:hover {
-  background: #e8eaed;
+  background: var(--border-color);
 }
 
 .button:disabled {
@@ -115,8 +167,8 @@ h1 {
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #e0e0e0;
-  border-top-color: #4285f4;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -134,13 +186,13 @@ h1 {
 }
 
 .status-message.success {
-  background: #e6f4ea;
-  color: #137333;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .status-message.error {
-  background: #fce8e6;
-  color: #c5221f;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 /* Error state */
@@ -150,7 +202,7 @@ h1 {
 }
 
 .error p {
-  color: #c5221f;
+  color: var(--error-text);
   margin-bottom: 16px;
 }
 
@@ -161,7 +213,7 @@ h1 {
 }
 
 .auth-required p {
-  color: #5f6368;
+  color: var(--text-secondary);
   margin-bottom: 16px;
 }
 

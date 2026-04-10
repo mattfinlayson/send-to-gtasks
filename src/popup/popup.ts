@@ -3,40 +3,101 @@
  * Handles the popup UI and task creation flow
  */
 
-import { createTaskFromCurrentPage } from '../services/task-creation'
-import { isAppError } from '../types'
+import { createTaskFromOptions } from '../services/task-creation'
+import { addSavedUrl, getPreferences } from '../services/storage'
+import { isAppError, MAX_NOTES_LENGTH } from '../types'
 
 // DOM Elements
-let statusElement: HTMLElement | null
+let taskForm: HTMLFormElement | null
+let notesInput: HTMLTextAreaElement | null
+let notesCounter: HTMLElement | null
+let dueDateInput: HTMLInputElement | null
+let dateWarning: HTMLElement | null
+let saveButton: HTMLButtonElement | null
+let loadingContainer: HTMLElement | null
 let errorContainer: HTMLElement | null
 let errorMessageElement: HTMLElement | null
 let retryButton: HTMLElement | null
 let successContainer: HTMLElement | null
-let authContainer: HTMLElement | null
-let signInButton: HTMLElement | null
 
 /**
  * Initialize DOM element references.
  * Exported for testing.
  */
 export function initElements(): void {
-  statusElement = document.getElementById('status')
+  taskForm = document.getElementById('task-form') as HTMLFormElement
+  notesInput = document.getElementById('notes-input') as HTMLTextAreaElement
+  notesCounter = document.getElementById('notes-counter')
+  dueDateInput = document.getElementById('due-date-picker') as HTMLInputElement
+  dateWarning = document.getElementById('date-warning')
+  saveButton = document.getElementById('save-button') as HTMLButtonElement
+  loadingContainer = document.getElementById('loading-container')
   errorContainer = document.getElementById('error-container')
   errorMessageElement = document.getElementById('error-message')
   retryButton = document.getElementById('retry-button')
   successContainer = document.getElementById('success-container')
-  authContainer = document.getElementById('auth-container')
-  signInButton = document.getElementById('sign-in-button')
+}
+
+/**
+ * Set up date input constraints
+ */
+function setupDateInput(): void {
+  if (!dueDateInput) return
+
+  const today = new Date()
+  const maxDate = new Date()
+  maxDate.setFullYear(today.getFullYear() + 5)
+
+  // Set min date to today
+  dueDateInput.min = today.toISOString().split('T')[0]
+  // Set max date to +5 years
+  dueDateInput.max = maxDate.toISOString().split('T')[0]
+}
+
+/**
+ * Handle notes input change - update counter
+ */
+function handleNotesInput(): void {
+  if (!notesInput || !notesCounter) return
+  const count = notesInput.value.length
+  notesCounter.textContent = `${count}/${MAX_NOTES_LENGTH}`
+}
+
+/**
+ * Handle due date change - show warning for past dates
+ */
+function handleDueDateChange(): void {
+  if (!dueDateInput || !dateWarning) return
+
+  const selectedDate = new Date(dueDateInput.value)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  if (selectedDate < today) {
+    dateWarning.classList.remove('hidden')
+  } else {
+    dateWarning.classList.add('hidden')
+  }
 }
 
 /**
  * Show loading state
  */
 function showLoading(): void {
-  statusElement?.classList.remove('hidden')
+  taskForm?.classList.add('hidden')
+  loadingContainer?.classList.remove('hidden')
   errorContainer?.classList.add('hidden')
   successContainer?.classList.add('hidden')
-  authContainer?.classList.add('hidden')
+}
+
+/**
+ * Show form state
+ */
+function showForm(): void {
+  taskForm?.classList.remove('hidden')
+  loadingContainer?.classList.add('hidden')
+  errorContainer?.classList.add('hidden')
+  successContainer?.classList.add('hidden')
 }
 
 /**
@@ -52,9 +113,9 @@ function notifyServiceWorker(type: 'TASK_CREATED' | 'TASK_ERROR'): void {
  * Show success state
  */
 function showSuccess(): void {
-  statusElement?.classList.add('hidden')
+  taskForm?.classList.add('hidden')
+  loadingContainer?.classList.add('hidden')
   errorContainer?.classList.add('hidden')
-  authContainer?.classList.add('hidden')
   successContainer?.classList.remove('hidden')
 
   // Notify service worker to show badge
@@ -70,28 +131,14 @@ function showSuccess(): void {
  * Show error state with message
  */
 function showError(message: string): void {
-  statusElement?.classList.add('hidden')
+  taskForm?.classList.add('hidden')
+  loadingContainer?.classList.add('hidden')
   successContainer?.classList.add('hidden')
-  authContainer?.classList.add('hidden')
   errorContainer?.classList.remove('hidden')
 
   if (errorMessageElement) {
     errorMessageElement.textContent = message
   }
-
-  // Notify service worker to show error badge
-  notifyServiceWorker('TASK_ERROR')
-}
-
-/**
- * Show auth state — user needs to sign in.
- * Exported for testing.
- */
-export function showAuth(): void {
-  statusElement?.classList.add('hidden')
-  errorContainer?.classList.add('hidden')
-  successContainer?.classList.add('hidden')
-  authContainer?.classList.remove('hidden')
 }
 
 /**
@@ -132,20 +179,36 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
- * Execute the task creation flow.
- * Exported for testing.
+ * Get current tab info and create task with form data
  */
-export async function createTask(): Promise<void> {
+async function createTaskWithForm(): Promise<void> {
+  // Get current tab info
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+  if (!tab || !tab.url || !tab.title) {
+    showError('Could not access the current page.')
+    return
+  }
+
+  // Get form values
+  const notes = notesInput?.value || ''
+  const dueDate = dueDateInput?.value || undefined
+
   showLoading()
 
   try {
-    await createTaskFromCurrentPage()
+    // Create task with options
+    await createTaskFromOptions({
+      title: tab.title,
+      url: tab.url,
+      notes: notes || undefined,
+      dueDate: dueDate || undefined,
+    })
+
+    // Add URL to saved index
+    await addSavedUrl(tab.url)
+
     showSuccess()
   } catch (error) {
-    if (isAppError(error) && error.code === 'AUTH_REQUIRED') {
-      showAuth()
-      return
-    }
     const message = getErrorMessage(error)
     showError(message)
   }
@@ -154,8 +217,8 @@ export async function createTask(): Promise<void> {
 /**
  * Handle retry button click
  */
-async function handleRetry(): Promise<void> {
-  await createTask()
+function handleRetry(): void {
+  showForm()
 }
 
 /**
@@ -163,19 +226,25 @@ async function handleRetry(): Promise<void> {
  */
 function init(): void {
   initElements()
+  setupDateInput()
+
+  // Set up event listeners
+  notesInput?.addEventListener('input', handleNotesInput)
+  dueDateInput?.addEventListener('change', handleDueDateChange)
+
+  // Set up form submission
+  taskForm?.addEventListener('submit', (e) => {
+    e.preventDefault()
+    void createTaskWithForm()
+  })
 
   // Set up retry button
   retryButton?.addEventListener('click', () => {
-    void handleRetry()
+    handleRetry()
   })
 
-  // Set up sign-in button — triggers the task creation flow which will acquire token interactively
-  signInButton?.addEventListener('click', () => {
-    void createTask()
-  })
-
-  // Start task creation immediately
-  void createTask()
+  // Initialize notes counter
+  handleNotesInput()
 }
 
 // Run on DOM ready
