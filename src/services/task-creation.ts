@@ -4,6 +4,7 @@
  */
 
 import { isAppError, MAX_NOTES_LENGTH, type TaskResponse } from '../types'
+import { enqueueTask } from './storage'
 import { getToken, removeToken } from './auth'
 import { extractPageInfo, getCurrentTab } from './page-capture'
 import { getPreferences } from './storage'
@@ -60,10 +61,11 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
       : `${options.dueDate}T00:00:00.000Z`
   }
 
-  // Create the task
+  // Create the task, with offline queue support
   try {
     return await createTask(token, listId, taskRequest)
   } catch (err) {
+    // Handle auth errors
     if (isAppError(err) && err.code === 'AUTH_REQUIRED') {
       await removeToken(token)
       const freshToken = await getToken(true)
@@ -72,6 +74,20 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
       }
       return await createTask(freshToken, listId, taskRequest)
     }
+
+    // Queue task for later if network error (offline support)
+    if (isAppError(err) && err.code === 'NETWORK_ERROR' && err.retryable) {
+      await enqueueTask({
+        title: options.title,
+        url: options.url || '',
+        notes: options.notes || '',
+        dueDate: options.dueDate,
+        taskListId: listId,
+      })
+      // Return null to indicate task was queued (caller should handle this)
+      return null as unknown as TaskResponse
+    }
+
     throw err
   }
 }
