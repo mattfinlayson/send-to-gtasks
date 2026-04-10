@@ -14,13 +14,19 @@ export async function getToken(interactive: boolean): Promise<string | null> {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive }, (result) => {
       console.log('[Auth] getAuthToken callback, lastError:', chrome.runtime.lastError)
-      console.log('[Auth] getAuthToken result:', result)
+      console.log('[Auth] getAuthToken result:', result, typeof result)
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message))
         return
       }
-      // GetAuthTokenResult is { token?: string; grantedScopes?: string[] }
-      resolve(result?.token ?? null)
+      // Handle both old API (returns string) and new API (returns GetAuthTokenResult object)
+      if (typeof result === 'string') {
+        resolve(result || null)
+      } else if (result && typeof result === 'object' && 'token' in result) {
+        resolve(result.token ?? null)
+      } else {
+        resolve(null)
+      }
     })
   })
 }
