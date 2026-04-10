@@ -5,7 +5,10 @@
 
 const CLIENT_ID = '826876690942-meimo9nertd9kah0ftmk16kk15adl5ma.apps.googleusercontent.com'
 const SCOPES = 'https://www.googleapis.com/auth/tasks'
-const REDIRECT_URI = `https://${chrome.runtime.id}.chromiumapp.org`
+
+// Note: redirect_uri is automatically set by launchWebAuthFlow
+// Using the built-in https://oauth2.chromiumapp.org
+const REDIRECT_URI = 'https://oauth2.chromiumapp.org'
 
 /**
  * Get the OAuth authorization URL
