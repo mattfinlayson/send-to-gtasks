@@ -234,10 +234,10 @@ describe('Task Creation Flow Integration', () => {
   describe('null token handling', () => {
     it('should throw TasksAPIError with AUTH_REQUIRED when token is null', async () => {
       // Make getToken return null
-      chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (token?: string) => void) => {
-        if (callback) callback(undefined)
-        return Promise.resolve(undefined as unknown as string)
-      }) as typeof chromeIdentity.getAuthToken)
+      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       await expect(createTaskFromCurrentPage())
         .rejects.toMatchObject({ code: 'AUTH_REQUIRED' })
@@ -246,16 +246,16 @@ describe('Task Creation Flow Integration', () => {
     it('should re-throw original AUTH_REQUIRED error when refresh token is also null', async () => {
       // First getToken returns a token, second (after removeToken) returns null
       let callCount = 0
-      chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (token?: string) => void) => {
+      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
         callCount++
         if (callCount === 1) {
-          if (callback) callback(DEFAULT_MOCK_TOKEN)
-          return Promise.resolve(DEFAULT_MOCK_TOKEN)
+          if (callback) callback({ token: DEFAULT_MOCK_TOKEN })
+          return Promise.resolve({ token: DEFAULT_MOCK_TOKEN })
         }
         // Second call returns null
-        if (callback) callback(undefined)
-        return Promise.resolve(undefined as unknown as string)
-      }) as typeof chromeIdentity.getAuthToken)
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       // First fetch returns 401
       mockFetch.mockResolvedValueOnce({
@@ -293,7 +293,7 @@ describe('Task Creation Flow Integration', () => {
           callback([{
             id: 1, index: 0, pinned: false, highlighted: true, windowId: 1,
             active: true, incognito: false, selected: true, discarded: false,
-            autoDiscardable: true, groupId: -1,
+            autoDiscardable: true, groupId: -1, frozen: false,
             url: veryLongUrl,
             title: 'Long URL Page'
           }])

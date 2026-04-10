@@ -108,14 +108,14 @@ const chromeStorageSession = {
 const chromeIdentity = {
   getAuthToken: vi.fn((
     details: { interactive: boolean },
-    callback?: (token?: string) => void
+    callback?: (result: chrome.identity.GetAuthTokenResult) => void
   ) => {
     // Default: return a mock token
-    const token = 'mock-auth-token-12345'
+    const result: chrome.identity.GetAuthTokenResult = { token: 'mock-auth-token-12345' }
     if (callback) {
-      callback(token)
+      callback(result)
     }
-    return Promise.resolve(token)
+    return Promise.resolve(result)
   }),
   removeCachedAuthToken: vi.fn((
     details: { token: string },
@@ -146,6 +146,7 @@ const chromeTabs = {
       discarded: false,
       autoDiscardable: true,
       groupId: -1,
+      frozen: false,
       url: 'https://example.com/test-page',
       title: 'Test Page Title'
     }
@@ -248,6 +249,7 @@ export function createMockTab(overrides?: Partial<chrome.tabs.Tab>): chrome.tabs
     discarded: false,
     autoDiscardable: true,
     groupId: -1,
+    frozen: false,
     url: 'https://example.com',
     title: 'Example Page',
     ...overrides
@@ -277,13 +279,13 @@ export function resetChromeMocks(): void {
   // Restore default implementations
   chromeIdentity.getAuthToken.mockImplementation((
     details: { interactive: boolean },
-    callback?: (token?: string) => void
+    callback?: (result: chrome.identity.GetAuthTokenResult) => void
   ) => {
-    const token = DEFAULT_MOCK_TOKEN
+    const result: chrome.identity.GetAuthTokenResult = { token: DEFAULT_MOCK_TOKEN }
     if (callback) {
-      callback(token)
+      callback(result)
     }
-    return Promise.resolve(token)
+    return Promise.resolve(result)
   })
 
   // Restore default chromeTabs.query implementation
@@ -303,6 +305,7 @@ export function resetChromeMocks(): void {
       discarded: false,
       autoDiscardable: true,
       groupId: -1,
+      frozen: false,
       url: 'https://example.com/test-page',
       title: 'Test Page Title'
     }
@@ -349,11 +352,11 @@ export function simulateAuthError(message: string): void {
 
 // Helper to simulate no token
 export function simulateNoToken(): void {
-  chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (token?: string) => void) => {
+  chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
     if (callback) {
-      callback(undefined)
+      callback({})
     }
-    return Promise.resolve(undefined as unknown as string)
+    return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
   }) as typeof chromeIdentity.getAuthToken)
 }
 

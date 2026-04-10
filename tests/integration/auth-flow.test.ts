@@ -23,15 +23,15 @@ describe('Auth Flow Integration', () => {
       expect(isAuthed).toBe(false)
 
       // Now restore normal mock for interactive sign-in
-      chromeIdentity.getAuthToken.mockImplementation(((details: { interactive: boolean }, callback?: (token?: string) => void) => {
+      chromeIdentity.getAuthToken.mockImplementation((details: { interactive: boolean }, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
         if (details.interactive) {
           // User completes sign-in
-          if (callback) callback('new-user-token')
-          return Promise.resolve('new-user-token')
+          if (callback) callback({ token: 'new-user-token' })
+          return Promise.resolve({ token: 'new-user-token' })
         }
-        if (callback) callback(undefined)
-        return Promise.resolve(undefined as unknown as string)
-      }) as typeof chromeIdentity.getAuthToken)
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       // Interactive sign-in should succeed
       const token = await getToken(true)
@@ -44,8 +44,8 @@ describe('Auth Flow Integration', () => {
       // User already has a valid token cached
       const cachedToken = 'cached-token-xyz'
       chromeIdentity.getAuthToken.mockImplementation((details, callback) => {
-        if (callback) callback(cachedToken)
-        return Promise.resolve(cachedToken)
+        if (callback) callback({ token: cachedToken })
+        return Promise.resolve({ token: cachedToken })
       })
 
       // Non-interactive should return the cached token
@@ -72,8 +72,8 @@ describe('Auth Flow Integration', () => {
 
       // Then get a fresh token
       chromeIdentity.getAuthToken.mockImplementation((details, callback) => {
-        if (callback) callback(newToken)
-        return Promise.resolve(newToken)
+        if (callback) callback({ token: newToken })
+        return Promise.resolve({ token: newToken })
       })
 
       const token = await getToken(false)
@@ -84,11 +84,11 @@ describe('Auth Flow Integration', () => {
   describe('User revokes access flow', () => {
     it('should handle revoked access gracefully', async () => {
       // Simulate revoked access error
-      chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (token?: string) => void) => {
+      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
         chromeRuntime.lastError = { message: 'OAuth2 not granted or revoked' }
-        if (callback) callback(undefined)
-        return Promise.resolve(undefined as unknown as string)
-      }) as typeof chromeIdentity.getAuthToken)
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       // isAuthenticated should return false
       const isAuthed = await isAuthenticated()

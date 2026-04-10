@@ -11,12 +11,13 @@
  */
 export async function getToken(interactive: boolean): Promise<string | null> {
   return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive }, (token) => {
+    chrome.identity.getAuthToken({ interactive }, (result) => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message))
         return
       }
-      resolve(token ?? null)
+      // GetAuthTokenResult is { token?: string; grantedScopes?: string[] }
+      resolve(result?.token ?? null)
     })
   })
 }

@@ -47,11 +47,11 @@ describe('Auth Service', () => {
     })
 
     it('should throw error when chrome.runtime.lastError is set', async () => {
-      chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (token?: string) => void) => {
+      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
         chromeRuntime.lastError = { message: 'OAuth2 not granted or revoked' }
-        if (callback) callback(undefined)
-        return Promise.resolve(undefined as unknown as string)
-      }) as typeof chromeIdentity.getAuthToken)
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       await expect(getToken(true)).rejects.toThrow('OAuth2 not granted or revoked')
     })
@@ -94,11 +94,11 @@ describe('Auth Service', () => {
     })
 
     it('should return false when auth error occurs', async () => {
-      chromeIdentity.getAuthToken.mockImplementation(((_details: unknown, callback?: (token?: string) => void) => {
+      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
         chromeRuntime.lastError = { message: 'User not signed in' }
-        if (callback) callback(undefined)
-        return Promise.resolve(undefined as unknown as string)
-      }) as typeof chromeIdentity.getAuthToken)
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       const result = await isAuthenticated()
 
