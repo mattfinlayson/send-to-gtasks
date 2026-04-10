@@ -8,13 +8,14 @@ const SCOPES = 'https://www.googleapis.com/auth/tasks'
 
 /**
  * Get the OAuth authorization URL
- * For Chrome App client type, Chrome automatically sets the redirect_uri
- * to https://<extension-id>.chromiumapp.org
+ * Uses chrome.identity.getRedirectURL() which returns the correct redirect_uri
+ * for the Chrome App client type: https://<extension-id>.chromiumapp.org
  */
 function getAuthUrl(): string {
+  const redirectUri = chrome.identity.getRedirectURL('callback')
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
   url.searchParams.set('client_id', CLIENT_ID)
-  // Note: redirect_uri is NOT set - Chrome fills it in automatically for Chrome App clients
+  url.searchParams.set('redirect_uri', redirectUri)
   url.searchParams.set('response_type', 'token')
   url.searchParams.set('scope', SCOPES)
   url.searchParams.set('include_granted_scopes', 'true')

@@ -137,6 +137,9 @@ const chromeIdentity = {
       callback(mockRedirectUrl)
     }
     return Promise.resolve(mockRedirectUrl)
+  }),
+  getRedirectURL: vi.fn((path?: string) => {
+    return `https://test-extension-id.chromiumapp.org/${path || ''}`
   })
 }
 
