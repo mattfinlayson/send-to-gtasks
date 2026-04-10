@@ -6,7 +6,8 @@ import { resetChromeMocks, setMockStorage } from '../setup'
 
 // Mock the services
 vi.mock('@/services/auth', () => ({
-  getToken: vi.fn()
+  getToken: vi.fn(),
+  removeToken: vi.fn()
 }))
 
 vi.mock('@/services/tasks-api', () => ({
@@ -18,7 +19,7 @@ vi.mock('@/services/storage', () => ({
   setPreferences: vi.fn()
 }))
 
-import { getToken } from '@/services/auth'
+import { getToken, removeToken } from '@/services/auth'
 import { getTaskLists } from '@/services/tasks-api'
 import { getPreferences, setPreferences } from '@/services/storage'
 
@@ -45,6 +46,7 @@ function setupDOM(): void {
         <div class="actions">
           <button id="save-button" class="button primary" aria-label="Save selected task list">Save</button>
           <button id="refresh-button" class="button secondary" aria-label="Refresh task lists from Google">Refresh Lists</button>
+          <button id="logout-button" class="button secondary" aria-label="Sign out from Google">Sign Out</button>
         </div>
         <div id="status-message" class="status-message hidden" role="status" aria-live="polite"></div>
       </div>
@@ -243,6 +245,37 @@ describe('Options Page', () => {
 
       const statusMsg = document.getElementById('status-message')
       expect(statusMsg?.textContent).toMatch(/sign in failed/i)
+    })
+  })
+
+  describe('handleSignOut', () => {
+    it('should remove cached token and show auth state', async () => {
+      mockGetToken.mockResolvedValue('user-token')
+
+      const { handleSignOut, initElements } = await import('@/options/options')
+      initElements()
+      await handleSignOut()
+
+      expect(mockGetToken).toHaveBeenCalledWith(false)
+      expect(removeToken).toHaveBeenCalledWith('user-token')
+
+      // Auth required section should be visible
+      const authRequired = document.getElementById('auth-required')
+      expect(authRequired?.classList.contains('hidden')).toBe(false)
+    })
+
+    it('should show auth state even if getToken returns null', async () => {
+      mockGetToken.mockResolvedValue(null)
+
+      const { handleSignOut, initElements } = await import('@/options/options')
+      initElements()
+      await handleSignOut()
+
+      expect(removeToken).not.toHaveBeenCalled()
+
+      // Auth required section should be visible
+      const authRequired = document.getElementById('auth-required')
+      expect(authRequired?.classList.contains('hidden')).toBe(false)
     })
   })
 })

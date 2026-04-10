@@ -3,7 +3,7 @@
  * Handles task list selection and preferences
  */
 
-import { getToken } from '../services/auth'
+import { getToken, removeToken } from '../services/auth'
 import {
   getPreferences,
   getQuickSaveEnabled,
@@ -24,6 +24,7 @@ let saveButton: HTMLElement | null
 let refreshButton: HTMLElement | null
 let retryButton: HTMLElement | null
 let signInButton: HTMLElement | null
+let logoutButton: HTMLElement | null
 let statusMessage: HTMLElement | null
 let errorMessage: HTMLElement | null
 let quickSaveToggle: HTMLInputElement | null
@@ -46,6 +47,7 @@ export function initElements(): void {
   refreshButton = document.getElementById('refresh-button')
   retryButton = document.getElementById('retry-button')
   signInButton = document.getElementById('sign-in-button')
+  logoutButton = document.getElementById('logout-button')
   statusMessage = document.getElementById('status-message')
   errorMessage = document.getElementById('error-message')
   quickSaveToggle = document.getElementById('quick-save-toggle') as HTMLInputElement
@@ -212,6 +214,23 @@ export async function handleSignIn(): Promise<void> {
 }
 
 /**
+ * Handle sign out.
+ * Removes cached token and shows auth required state.
+ * Exported for testing.
+ */
+export async function handleSignOut(): Promise<void> {
+  try {
+    const token = await getToken(false)
+    if (token) {
+      await removeToken(token)
+    }
+  } catch {
+    // Ignore errors - proceed with sign out anyway
+  }
+  showState('auth')
+}
+
+/**
  * Handle quick save toggle change.
  * Saves the preference to session storage.
  * Exported for testing.
@@ -260,6 +279,7 @@ function init(): void {
   refreshButton?.addEventListener('click', () => loadData(true))
   retryButton?.addEventListener('click', () => loadData())
   signInButton?.addEventListener('click', handleSignIn)
+  logoutButton?.addEventListener('click', handleSignOut)
   quickSaveToggle?.addEventListener('change', handleQuickSaveToggle)
 
   // Load initial data
