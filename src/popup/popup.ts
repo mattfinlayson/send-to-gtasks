@@ -102,8 +102,9 @@ function showForm(): void {
  * Notify service worker of result
  */
 function notifyServiceWorker(type: 'TASK_CREATED' | 'TASK_ERROR'): void {
-  chrome.runtime.sendMessage({ type }).catch(() => {
+  chrome.runtime.sendMessage({ type }).catch((error) => {
     // Service worker inactive — badge update is best-effort
+    console.debug('Could not notify service worker:', error?.message)
   })
 }
 

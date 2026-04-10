@@ -8,41 +8,95 @@ import { dequeueTask, getOfflineQueue, setOfflineQueue, updateQueuedTaskStatus }
 import { createTaskFromOptions } from './task-creation'
 
 /**
+ * Key for storing sync lock in session storage
+ */
+const SYNC_LOCK_KEY = 'offlineQueueSyncLock'
+
+/**
+ * Try to acquire the sync lock. Returns true if lock was acquired,
+ * false if another sync is already in progress.
+ */
+async function tryAcquireSyncLock(): Promise<boolean> {
+  const result = await chrome.storage.session.get([SYNC_LOCK_KEY])
+  if (result[SYNC_LOCK_KEY]) {
+    // Another sync is in progress
+    return false
+  }
+  // Try to set the lock with a 30-second timeout
+  await chrome.storage.session.set({ [SYNC_LOCK_KEY]: Date.now() + 30000 })
+  // Double-check we got the lock (another process might have beaten us)
+  const verify = await chrome.storage.session.get([SYNC_LOCK_KEY])
+  return verify[SYNC_LOCK_KEY] === Date.now() + 30000
+}
+
+/**
+ * Release the sync lock
+ */
+async function releaseSyncLock(): Promise<void> {
+  await chrome.storage.session.remove(SYNC_LOCK_KEY)
+}
+
+/**
+ * Check if our lock has expired and clean it up if so
+ */
+async function cleanupExpiredLock(): Promise<void> {
+  const result = await chrome.storage.session.get([SYNC_LOCK_KEY])
+  const lockExpiry = result[SYNC_LOCK_KEY] as number | undefined
+  if (lockExpiry && lockExpiry < Date.now()) {
+    await chrome.storage.session.remove(SYNC_LOCK_KEY)
+  }
+}
+
+/**
  * Sync all pending tasks in the offline queue
  * Called when connectivity is restored or on alarm trigger
+ * Uses a lock to prevent race conditions from concurrent syncs
  */
 export async function syncOfflineQueue(): Promise<{ synced: number; failed: number }> {
-  const queue = await getOfflineQueue()
-  let synced = 0
-  let failed = 0
+  // Clean up any expired locks first
+  await cleanupExpiredLock()
 
-  for (const task of queue.tasks) {
-    if (task.status === 'pending' || task.status === 'failed') {
-      try {
-        await updateQueuedTaskStatus(task.id, 'syncing')
-        await createTaskFromOptions({
-          title: task.title,
-          url: task.url,
-          notes: task.notes,
-          dueDate: task.dueDate,
-          taskListId: task.taskListId,
-        })
-        await dequeueTask(task.id)
-        synced++
-      } catch (_error) {
-        const shouldRetry = task.retryCount < MAX_RETRY_COUNT
-        await updateQueuedTaskStatus(task.id, shouldRetry ? 'pending' : 'failed', true)
-        failed++
-      }
-    }
+  // Try to acquire the sync lock
+  if (!(await tryAcquireSyncLock())) {
+    console.debug('Offline queue sync already in progress, skipping')
+    return { synced: 0, failed: 0 }
   }
 
-  // Update last sync timestamp
-  const updatedQueue = await getOfflineQueue()
-  updatedQueue.lastSyncAt = Date.now()
-  await setOfflineQueue(updatedQueue)
+  try {
+    const queue = await getOfflineQueue()
+    let synced = 0
+    let failed = 0
 
-  return { synced, failed }
+    for (const task of queue.tasks) {
+      if (task.status === 'pending' || task.status === 'failed') {
+        try {
+          await updateQueuedTaskStatus(task.id, 'syncing')
+          await createTaskFromOptions({
+            title: task.title,
+            url: task.url,
+            notes: task.notes,
+            dueDate: task.dueDate,
+            taskListId: task.taskListId,
+          })
+          await dequeueTask(task.id)
+          synced++
+        } catch (_error) {
+          const shouldRetry = task.retryCount < MAX_RETRY_COUNT
+          await updateQueuedTaskStatus(task.id, shouldRetry ? 'pending' : 'failed', true)
+          failed++
+        }
+      }
+    }
+
+    // Update last sync timestamp
+    const updatedQueue = await getOfflineQueue()
+    updatedQueue.lastSyncAt = Date.now()
+    await setOfflineQueue(updatedQueue)
+
+    return { synced, failed }
+  } finally {
+    await releaseSyncLock()
+  }
 }
 
 /**

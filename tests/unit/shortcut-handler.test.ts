@@ -14,6 +14,9 @@ const mockChrome = {
   tabs: {
     query: vi.fn(),
   },
+  alarms: {
+    create: vi.fn(),
+  },
 }
 
 // Set up global chrome mock

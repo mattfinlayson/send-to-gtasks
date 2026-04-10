@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { normalizeUrl, type DuplicateCheckResult, checkDuplicate } from '../../src/services/duplicate-check'
+import { type DuplicateCheckResult, checkDuplicate } from '../../src/services/duplicate-check'
+import { normalizeUrl } from '../../src/utils/url'
 import { getOfflineQueue, getSavedUrls } from '../../src/services/storage'
 
 // Mock storage module

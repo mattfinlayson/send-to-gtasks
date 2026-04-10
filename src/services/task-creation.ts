@@ -134,8 +134,15 @@ export async function createTaskFromCurrentPage(): Promise<TaskResponse> {
     throw new TasksAPIError('AUTH_REQUIRED', 'Authentication required. Please sign in.', false)
   }
 
+  // Build notes with URL marker (consistent with createTaskFromOptions)
+  let notes = `
+
+[Saved from: ${pageInfo.url}]`
+
   // Truncate notes to API limit
-  const notes = pageInfo.url.slice(0, MAX_NOTES_LENGTH)
+  if (notes.length > MAX_NOTES_LENGTH) {
+    notes = `${notes.slice(0, MAX_NOTES_LENGTH - 15)}... (truncated)`
+  }
 
   const taskRequest = {
     title: pageInfo.title,

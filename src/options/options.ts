@@ -236,8 +236,15 @@ export async function handleQuickSaveToggle(): Promise<void> {
   if (!quickSaveToggle) return
 
   const enabled = quickSaveToggle.checked
-  await setQuickSaveEnabled(enabled)
-  showStatus(enabled ? 'Quick save enabled!' : 'Quick save disabled', 'success')
+  try {
+    await setQuickSaveEnabled(enabled)
+    showStatus(enabled ? 'Quick save enabled!' : 'Quick save disabled', 'success')
+  } catch (error) {
+    console.error('Failed to save quick save preference:', error)
+    // Revert toggle to previous state
+    quickSaveToggle.checked = !enabled
+    showStatus('Failed to save preference', 'error')
+  }
 }
 
 /**
@@ -256,7 +263,11 @@ export async function loadQuickSavePreference(): Promise<void> {
  * Returns "Ctrl" for Windows/Linux and "Cmd" for Mac
  */
 function getModifierKeyLabel(): string {
-  return navigator.platform.toLowerCase().includes('mac') ? 'Cmd' : 'Ctrl'
+  // Use modern API with fallback to deprecated one
+  // userAgentData is not available in all environments, so check for it
+  const ua = navigator as Navigator & { userAgentData?: { platform?: string } }
+  const platform = ua.userAgentData?.platform ?? navigator.platform
+  return platform.toLowerCase().includes('mac') ? 'Cmd' : 'Ctrl'
 }
 
 /**

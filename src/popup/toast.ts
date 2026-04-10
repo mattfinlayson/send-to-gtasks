@@ -4,9 +4,7 @@
  */
 
 import { setQuickSaveEnabled } from '../services/storage'
-import { TOAST_DURATION_MS } from '../types'
-
-type ToastType = 'success' | 'error' | 'queued' | 'duplicate'
+import { TOAST_DURATION_MS, type ToastType } from '../types'
 
 interface ToastConfig {
   type: ToastType

@@ -14,6 +14,7 @@ import {
   type UserPreferences,
 } from '../types'
 import { DEFAULT_SHORTCUT_PREFERENCE, type ShortcutPreference } from '../types/shortcut'
+import { normalizeUrl } from '../utils/url'
 
 /**
  * Get user preferences from storage
@@ -313,20 +314,4 @@ export async function isUrlSaved(url: string): Promise<boolean> {
   const index = await getSavedUrls()
   const normalizedUrl = normalizeUrl(url)
   return index.urls.includes(normalizedUrl)
-}
-
-/**
- * Normalize URL for comparison (remove trailing slash, lowercase)
- */
-function normalizeUrl(url: string): string {
-  try {
-    const parsed = new URL(url)
-    // Remove trailing slash
-    let normalized = parsed.href.endsWith('/') ? parsed.href.slice(0, -1) : parsed.href
-    // Remove www prefix for comparison
-    normalized = normalized.replace(/^https?:\/\/www\./, 'https://')
-    return normalized.toLowerCase()
-  } catch {
-    return url.toLowerCase()
-  }
 }

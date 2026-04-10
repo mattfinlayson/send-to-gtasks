@@ -50,7 +50,7 @@ export function showErrorBadge(tabId?: number): void {
   void chrome.alarms.create('clear-badge', { when: Date.now() + 3000 })
 }
 
-// Alarm listener — clears badge when 'clear-badge' alarm fires
+// Alarm listener — clears badge and notifications when alarms fire
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'clear-badge') {
     const result = await chrome.storage.session.get(['pendingBadgeClear'])
@@ -61,6 +61,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (tabId) clearOptions.tabId = tabId
     void chrome.action.setBadgeText(clearOptions)
     void chrome.storage.session.remove('pendingBadgeClear')
+  } else if (alarm.name.startsWith('clear-notification-')) {
+    // Extract notification ID from alarm name: 'clear-notification-{id}'
+    const notificationId = alarm.name.replace('clear-notification-', '')
+    void chrome.notifications.clear(notificationId)
   }
 })
 

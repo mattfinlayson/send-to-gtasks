@@ -45,7 +45,7 @@ describe('Task Creation Flow Integration', () => {
           method: 'POST',
           body: JSON.stringify({
             title: 'Test Page Title',
-            notes: 'https://example.com/test-page'
+            notes: '\n\n[Saved from: https://example.com/test-page]'
           })
         })
       )
@@ -101,7 +101,7 @@ describe('Task Creation Flow Integration', () => {
         expect.objectContaining({
           body: JSON.stringify({
             title: 'notitle.example.com',
-            notes: 'https://notitle.example.com/page'
+            notes: '\n\n[Saved from: https://notitle.example.com/page]'
           })
         })
       )

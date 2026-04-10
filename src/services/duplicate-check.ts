@@ -3,6 +3,7 @@
  * Checks if a URL has already been saved as a task
  */
 
+import { normalizeUrl } from '../utils/url'
 import { getOfflineQueue, getSavedUrls } from './storage'
 
 /**
@@ -11,22 +12,6 @@ import { getOfflineQueue, getSavedUrls } from './storage'
 export interface DuplicateCheckResult {
   isDuplicate: boolean
   matchedIn: 'synced' | 'queue' | 'both' | null
-}
-
-/**
- * Normalize URL for comparison
- */
-export function normalizeUrl(url: string): string {
-  try {
-    const parsed = new URL(url)
-    // Remove trailing slash
-    let normalized = parsed.href.endsWith('/') ? parsed.href.slice(0, -1) : parsed.href
-    // Remove www prefix for comparison
-    normalized = normalized.replace(/^https?:\/\/www\./, 'https://')
-    return normalized.toLowerCase()
-  } catch {
-    return url.toLowerCase()
-  }
 }
 
 /**

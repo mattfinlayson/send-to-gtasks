@@ -53,7 +53,9 @@ async function performQuickSave(): Promise<void> {
 
 /**
  * Show a toast notification for quick save feedback
- * Uses chrome.offscreen.createDocument for MV3 service worker compatibility
+ * Uses chrome.alarms instead of setTimeout for MV3 service worker compatibility
+ * Service workers can be terminated at any time, so alarms ensure the
+ * notification is cleared even if the worker is killed.
  */
 async function showToast(message: string): Promise<void> {
   // For now, use chrome.notifications if available
@@ -68,9 +70,10 @@ async function showToast(message: string): Promise<void> {
       priority: 2,
     })
 
-    // Auto-close after 2 seconds
-    setTimeout(() => {
-      chrome.notifications.clear(notificationId)
-    }, 2000)
+    // Use chrome.alarms instead of setTimeout for MV3 compatibility
+    // Schedule notification clear 2 seconds from now
+    await chrome.alarms.create(`clear-notification-${notificationId}`, {
+      when: Date.now() + 2000,
+    })
   }
 }
