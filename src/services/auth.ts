@@ -1,90 +1,45 @@
 /**
  * Auth Service
- * Handles Google OAuth2 authentication via chrome.identity API
+ * Handles Google OAuth2 authentication via chrome.identity API.
+ *
+ * Uses chrome.identity.getAuthToken() which works with the Chrome Extension
+ * client type in Google Cloud Console — no redirect URI configuration needed.
  */
-
-const CLIENT_ID = '826876690942-meimo9nertd9kah0ftmk16kk15adl5ma.apps.googleusercontent.com'
-const SCOPES = 'https://www.googleapis.com/auth/tasks'
 
 /**
- * Get the OAuth authorization URL
- * Uses chrome.identity.getRedirectURL() which returns the correct redirect_uri
- * for the Chrome App client type: https://<extension-id>.chromiumapp.org
+ * Extract token string from getAuthToken result.
+ * Handles both old API (returns string) and new API (returns GetAuthTokenResult).
  */
-function getAuthUrl(): string {
-  const redirectUri = chrome.identity.getRedirectURL('callback')
-  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  url.searchParams.set('client_id', CLIENT_ID)
-  url.searchParams.set('redirect_uri', redirectUri)
-  url.searchParams.set('response_type', 'token')
-  url.searchParams.set('scope', SCOPES)
-  url.searchParams.set('include_granted_scopes', 'true')
-  url.searchParams.set('prompt', 'consent')
-  return url.toString()
-}
-
-/**
- * Parse access token from the redirect URL
- */
-function parseTokenFromUrl(url: string): string | null {
-  try {
-    const parsed = new URL(url)
-    const fragment = parsed.hash.substring(1)
-    const params = new URLSearchParams(fragment)
-    return params.get('access_token')
-  } catch {
-    return null
+function extractToken(result: unknown): string | null {
+  if (typeof result === 'string') {
+    return result || null
   }
+  if (result && typeof result === 'object' && 'token' in result) {
+    return (result as { token?: string }).token ?? null
+  }
+  return null
 }
 
 /**
- * Get an OAuth2 access token.
- * - interactive=true: Uses launchWebAuthFlow with force consent (always shows OAuth screen)
- * - interactive=false: Uses getAuthToken with cached token (silent)
- * @returns The access token, or null if not available
+ * Get an OAuth2 access token via chrome.identity.getAuthToken.
+ * - interactive=true: Shows account picker / consent screen if needed
+ * - interactive=false: Returns cached token silently, or null
  */
 export async function getToken(interactive: boolean): Promise<string | null> {
-  if (!interactive) {
-    // Non-interactive mode - use cached token via getAuthToken
-    return new Promise((resolve) => {
-      chrome.identity.getAuthToken({ interactive: false }, (result) => {
-        if (chrome.runtime.lastError) {
-          resolve(null)
-          return
-        }
-        // Handle both old API (returns string) and new API (returns GetAuthTokenResult object)
-        if (typeof result === 'string') {
-          resolve(result || null)
-        } else if (result && typeof result === 'object' && 'token' in result) {
-          resolve(result.token ?? null)
-        } else {
-          resolve(null)
-        }
-      })
+  return new Promise((resolve) => {
+    chrome.identity.getAuthToken({ interactive }, (result) => {
+      if (chrome.runtime.lastError) {
+        resolve(null)
+        return
+      }
+      resolve(extractToken(result))
     })
-  }
-
-  // Interactive mode - use launchWebAuthFlow with prompt=consent to force consent screen
-  const url = getAuthUrl()
-
-  try {
-    const resultUrl = await chrome.identity.launchWebAuthFlow({
-      url,
-      interactive: true,
-    })
-
-    if (resultUrl) {
-      return parseTokenFromUrl(resultUrl)
-    }
-    return null
-  } catch {
-    return null
-  }
+  })
 }
 
 /**
- * Remove a cached token, forcing refresh on next getToken call
- * Call this when API returns 401 to invalidate the expired token
+ * Remove a cached token, forcing re-auth on next getToken call.
+ * Call this when API returns 401 to invalidate an expired token.
  */
 export async function removeToken(token: string): Promise<void> {
   return new Promise((resolve) => {
@@ -95,8 +50,27 @@ export async function removeToken(token: string): Promise<void> {
 }
 
 /**
- * Check if user is authenticated (has valid cached token)
- * Uses non-interactive mode to avoid showing consent UI
+ * Full logout: remove cached token and revoke it on Google's side.
+ * This ensures the next interactive getToken shows the account picker.
+ */
+export async function logout(): Promise<void> {
+  const token = await getToken(false)
+  if (!token) return
+
+  // Remove from Chrome's local cache
+  await removeToken(token)
+
+  // Revoke on Google's side so next login shows consent/account picker
+  try {
+    await fetch(`https://accounts.google.com/o/oauth2/revoke?token=${token}`)
+  } catch {
+    // Best-effort — network may be down
+  }
+}
+
+/**
+ * Check if user is authenticated (has valid cached token).
+ * Uses non-interactive mode to avoid showing consent UI.
  */
 export async function isAuthenticated(): Promise<boolean> {
   try {

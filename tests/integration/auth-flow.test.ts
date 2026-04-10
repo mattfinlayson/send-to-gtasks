@@ -22,11 +22,18 @@ describe('Auth Flow Integration', () => {
       const isAuthed = await isAuthenticated()
       expect(isAuthed).toBe(false)
 
-      // Mock launchWebAuthFlow for interactive sign-in
+      // Mock getAuthToken for interactive sign-in
       const newToken = 'new-user-token'
-      chromeIdentity.launchWebAuthFlow.mockResolvedValue(
-        `https://extension.chromiumapp.org/callback#access_token=${newToken}&token_type=Bearer`
-      )
+      chromeIdentity.getAuthToken.mockImplementation((details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
+        const params = details as { interactive: boolean }
+        if (params.interactive) {
+          if (callback) callback({ token: newToken })
+          return Promise.resolve({ token: newToken })
+        }
+        // Non-interactive returns null
+        if (callback) callback({})
+        return Promise.resolve({})
+      })
 
       // Interactive sign-in should succeed
       const token = await getToken(true)
@@ -89,9 +96,7 @@ describe('Auth Flow Integration', () => {
       const isAuthed = await isAuthenticated()
       expect(isAuthed).toBe(false)
 
-      // getToken with interactive should return null (launchWebAuthFlow handles errors gracefully)
-      chromeIdentity.launchWebAuthFlow.mockRejectedValue(new Error('OAuth2 not granted or revoked'))
-      
+      // getToken with interactive should return null
       const token = await getToken(true)
       expect(token).toBeNull()
     })

@@ -7,7 +7,8 @@ import { resetChromeMocks, setMockStorage } from '../setup'
 // Mock the services
 vi.mock('@/services/auth', () => ({
   getToken: vi.fn(),
-  removeToken: vi.fn()
+  removeToken: vi.fn(),
+  logout: vi.fn()
 }))
 
 vi.mock('@/services/tasks-api', () => ({
@@ -19,11 +20,12 @@ vi.mock('@/services/storage', () => ({
   setPreferences: vi.fn()
 }))
 
-import { getToken, removeToken } from '@/services/auth'
+import { getToken, logout } from '@/services/auth'
 import { getTaskLists } from '@/services/tasks-api'
 import { getPreferences, setPreferences } from '@/services/storage'
 
 const mockGetToken = vi.mocked(getToken)
+const mockLogout = vi.mocked(logout)
 const mockGetTaskLists = vi.mocked(getTaskLists)
 const mockGetPreferences = vi.mocked(getPreferences)
 const mockSetPreferences = vi.mocked(setPreferences)
@@ -67,6 +69,7 @@ describe('Options Page', () => {
     resetChromeMocks()
     setupDOM()
     mockGetToken.mockReset()
+    mockLogout.mockReset()
     mockGetTaskLists.mockReset()
     mockGetPreferences.mockReset()
     mockSetPreferences.mockReset()
@@ -249,29 +252,26 @@ describe('Options Page', () => {
   })
 
   describe('handleSignOut', () => {
-    it('should remove cached token and show auth state', async () => {
-      mockGetToken.mockResolvedValue('user-token')
+    it('should call logout and show auth state', async () => {
+      mockLogout.mockResolvedValue(undefined)
 
       const { handleSignOut, initElements } = await import('@/options/options')
       initElements()
       await handleSignOut()
 
-      expect(mockGetToken).toHaveBeenCalledWith(false)
-      expect(removeToken).toHaveBeenCalledWith('user-token')
+      expect(mockLogout).toHaveBeenCalled()
 
       // Auth required section should be visible
       const authRequired = document.getElementById('auth-required')
       expect(authRequired?.classList.contains('hidden')).toBe(false)
     })
 
-    it('should show auth state even if getToken returns null', async () => {
-      mockGetToken.mockResolvedValue(null)
+    it('should show auth state even if logout fails', async () => {
+      mockLogout.mockRejectedValue(new Error('Logout failed'))
 
       const { handleSignOut, initElements } = await import('@/options/options')
       initElements()
       await handleSignOut()
-
-      expect(removeToken).not.toHaveBeenCalled()
 
       // Auth required section should be visible
       const authRequired = document.getElementById('auth-required')

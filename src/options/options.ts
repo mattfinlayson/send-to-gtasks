@@ -3,7 +3,7 @@
  * Handles task list selection and preferences
  */
 
-import { getToken, removeToken } from '../services/auth'
+import { getToken, logout } from '../services/auth'
 import {
   getPreferences,
   getQuickSaveEnabled,
@@ -220,10 +220,7 @@ export async function handleSignIn(): Promise<void> {
  */
 export async function handleSignOut(): Promise<void> {
   try {
-    const token = await getToken(false)
-    if (token) {
-      await removeToken(token)
-    }
+    await logout()
   } catch {
     // Ignore errors - proceed with sign out anyway
   }

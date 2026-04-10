@@ -9,6 +9,7 @@ import {
 import {
   getToken,
   removeToken,
+  logout,
   isAuthenticated
 } from '@/services/auth'
 
@@ -18,21 +19,13 @@ describe('Auth Service', () => {
   })
 
   describe('getToken', () => {
-    it('should use launchWebAuthFlow when interactive=true', async () => {
-      // Mock launchWebAuthFlow to return a URL with a token
-      const mockToken = 'mock-access-token'
-      const mockRedirectUrl = `https://extension-id.chromiumapp.org/callback#access_token=${mockToken}&token_type=Bearer`
-      
-      chromeIdentity.launchWebAuthFlow.mockResolvedValue(mockRedirectUrl)
-
+    it('should use getAuthToken when interactive=true', async () => {
       const token = await getToken(true)
 
-      expect(token).toBe(mockToken)
-      expect(chromeIdentity.launchWebAuthFlow).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: expect.stringContaining('accounts.google.com'),
-          interactive: true,
-        })
+      expect(token).toBe(DEFAULT_MOCK_TOKEN)
+      expect(chromeIdentity.getAuthToken).toHaveBeenCalledWith(
+        { interactive: true },
+        expect.any(Function)
       )
     })
 
@@ -54,16 +47,12 @@ describe('Auth Service', () => {
       expect(token).toBeNull()
     })
 
-    it('should return null when launchWebAuthFlow is cancelled', async () => {
-      chromeIdentity.launchWebAuthFlow.mockResolvedValue(undefined as unknown as string)
-
-      const token = await getToken(true)
-
-      expect(token).toBeNull()
-    })
-
-    it('should return null when launchWebAuthFlow throws', async () => {
-      chromeIdentity.launchWebAuthFlow.mockRejectedValue(new Error('User cancelled'))
+    it('should return null when getAuthToken returns error', async () => {
+      chromeIdentity.getAuthToken.mockImplementation((_details: unknown, callback?: (result: chrome.identity.GetAuthTokenResult) => void) => {
+        chromeRuntime.lastError = { message: 'User not signed in' }
+        if (callback) callback({})
+        return Promise.resolve({} as chrome.identity.GetAuthTokenResult)
+      })
 
       const token = await getToken(true)
 
@@ -85,6 +74,32 @@ describe('Auth Service', () => {
 
     it('should resolve when token is successfully removed', async () => {
       await expect(removeToken('any-token')).resolves.toBeUndefined()
+    })
+  })
+
+  describe('logout', () => {
+    it('should remove cached token and revoke on Google', async () => {
+      // Mock fetch for revocation endpoint
+      const mockFetch = vi.fn().mockResolvedValue({ ok: true })
+      global.fetch = mockFetch
+
+      await logout()
+
+      expect(chromeIdentity.removeCachedAuthToken).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('accounts.google.com/o/oauth2/revoke')
+      )
+
+      // Clean up
+      delete (global as Record<string, unknown>).fetch
+    })
+
+    it('should do nothing when no token available', async () => {
+      simulateNoToken()
+
+      await logout()
+
+      expect(chromeIdentity.removeCachedAuthToken).not.toHaveBeenCalled()
     })
   })
 
