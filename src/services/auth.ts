@@ -6,44 +6,10 @@
 const CLIENT_ID = '826876690942-meimo9nertd9kah0ftmk16kk15adl5ma.apps.googleusercontent.com'
 const SCOPES = 'https://www.googleapis.com/auth/tasks'
 
-// Note: redirect_uri is automatically set by launchWebAuthFlow
-// Using the built-in https://oauth2.chromiumapp.org
-const REDIRECT_URI = 'https://oauth2.chromiumapp.org'
-
-/**
- * Get the OAuth authorization URL
- */
-function getAuthUrl(forceConsent: boolean = false): string {
-  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  url.searchParams.set('client_id', CLIENT_ID)
-  url.searchParams.set('redirect_uri', REDIRECT_URI)
-  url.searchParams.set('response_type', 'token')
-  url.searchParams.set('scope', SCOPES)
-  url.searchParams.set('include_granted_scopes', 'true')
-  if (forceConsent) {
-    url.searchParams.set('prompt', 'consent')
-  }
-  return url.toString()
-}
-
-/**
- * Parse access token from the redirect URL
- */
-function parseTokenFromUrl(url: string): string | null {
-  try {
-    const parsed = new URL(url)
-    const fragment = parsed.hash.substring(1)
-    const params = new URLSearchParams(fragment)
-    return params.get('access_token')
-  } catch {
-    return null
-  }
-}
-
 /**
  * Get an OAuth2 access token.
- * - interactive=true: Uses launchWebAuthFlow with force consent (always shows OAuth screen)
- * - interactive=false: Uses getAuthToken with cached token (silent)
+ * - interactive=true: Forces fresh auth by removing cached token first, then prompts
+ * - interactive=false: Uses cached token silently
  * @returns The access token, or null if not available
  */
 export async function getToken(interactive: boolean): Promise<string | null> {
@@ -67,22 +33,48 @@ export async function getToken(interactive: boolean): Promise<string | null> {
     })
   }
 
-  // Interactive mode - use launchWebAuthFlow with force consent
-  const url = getAuthUrl(true)
+  // Interactive mode - remove cached token first to force consent, then prompt
+  return new Promise((resolve) => {
+    // First, try to get and remove any existing cached token
+    chrome.identity.getAuthToken({ interactive: false }, (currentToken) => {
+      const token = typeof currentToken === 'string' ? currentToken : currentToken?.token
 
-  try {
-    const resultUrl = await chrome.identity.launchWebAuthFlow({
-      url,
-      interactive: true,
+      if (token) {
+        // Remove cached token to force fresh consent
+        chrome.identity.removeCachedAuthToken({ token }, () => {
+          // Now get a new token with interactive=true (will show consent)
+          chrome.identity.getAuthToken({ interactive: true }, (result) => {
+            if (chrome.runtime.lastError) {
+              resolve(null)
+              return
+            }
+            if (typeof result === 'string') {
+              resolve(result || null)
+            } else if (result && typeof result === 'object' && 'token' in result) {
+              resolve(result.token ?? null)
+            } else {
+              resolve(null)
+            }
+          })
+        })
+      } else {
+        // No cached token, just get one with consent
+        chrome.identity.getAuthToken({ interactive: true }, (result) => {
+          if (chrome.runtime.lastError) {
+            resolve(null)
+            return
+          }
+          if (typeof result === 'string') {
+            resolve(result || null)
+          } else if (result && typeof result === 'object' && 'token' in result) {
+            resolve(result.token ?? null)
+          } else {
+            resolve(null)
+          }
+        })
+      }
     })
-
-    if (resultUrl) {
-      return parseTokenFromUrl(resultUrl)
-    }
-    return null
-  } catch {
-    return null
-  }
+  })
 }
 
 /**

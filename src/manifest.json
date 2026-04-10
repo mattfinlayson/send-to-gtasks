@@ -9,9 +9,7 @@
     "identity",
     "alarms"
   ],
-  "host_permissions": [
-    "https://accounts.google.com/*"
-  ],
+  "host_permissions": [],
   "commands": {
     "_execute_action": {
       "suggested_key": {
