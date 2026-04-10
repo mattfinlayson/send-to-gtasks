@@ -21,11 +21,26 @@ export interface CreateTaskOptions {
 }
 
 /**
+ * Result of task creation that distinguishes between success and queued
+ */
+export interface CreateTaskResult {
+  success: true
+  task: TaskResponse
+}
+
+export interface CreateTaskQueuedResult {
+  success: false
+  queued: true
+}
+
+/**
  * Create a task with extended options
  * @param options Task creation options
- * @returns The created task response
+ * @returns The created task response or queued status
  */
-export async function createTaskFromOptions(options: CreateTaskOptions): Promise<TaskResponse> {
+export async function createTaskFromOptions(
+  options: CreateTaskOptions,
+): Promise<CreateTaskResult | CreateTaskQueuedResult> {
   // Get auth token
   const token = await getToken(true)
   if (!token) {
@@ -39,12 +54,12 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
   let notes = options.notes || ''
   if (options.url) {
     const urlMarker = `\n\n[Saved from: ${options.url}]`
-    notes = notes ? notes + urlMarker : urlMarker.slice(2)
+    notes = notes ? `${notes}${urlMarker}` : urlMarker.slice(2)
   }
 
   // Truncate notes to API limit
   if (notes.length > MAX_NOTES_LENGTH) {
-    ;`${notes.slice(0, MAX_NOTES_LENGTH - 15)}... (truncated)`
+    notes = `${notes.slice(0, MAX_NOTES_LENGTH - 15)}... (truncated)`
   }
 
   const taskRequest: { title: string; notes?: string; due?: string } = {
@@ -62,7 +77,8 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
 
   // Create the task, with offline queue support
   try {
-    return await createTask(token, listId, taskRequest)
+    const task = await createTask(token, listId, taskRequest)
+    return { success: true, task }
   } catch (err) {
     // Handle auth errors
     if (isAppError(err) && err.code === 'AUTH_REQUIRED') {
@@ -71,7 +87,8 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
       if (!freshToken) {
         throw err
       }
-      return await createTask(freshToken, listId, taskRequest)
+      const task = await createTask(freshToken, listId, taskRequest)
+      return { success: true, task }
     }
 
     // Queue task for later if network error (offline support)
@@ -83,8 +100,7 @@ export async function createTaskFromOptions(options: CreateTaskOptions): Promise
         dueDate: options.dueDate,
         taskListId: listId,
       })
-      // Return null to indicate task was queued (caller should handle this)
-      return null as unknown as TaskResponse
+      return { success: false, queued: true }
     }
 
     throw err
