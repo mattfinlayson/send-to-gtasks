@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Send to Google Tasks",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApin84WXQlsAvnhZBx/kxyOdMEWB24yc47k1VQBx23V8D6NLUcIYkMGR06mKnBmjXbIzBEtPeVn9fbbNjO76Lsti1ajMnKZ3FIXe29qtxB+AVEL9bBU6dBmQqjxOKcCnRQWFvpiwYd76t+vmrbNgOFNHwb0xdC70NVGcbJxnEBJqmyyfOtQENCVHZN4U8BZn9e8YHOYtCnr0BNX0sycQYLkhALcdw7xdp5XTcvO0z0PMPir2HCJ+pWrRsnnh5Dt/Fs7oEogoIb6U/iL+AI8fn9Iwx7buqsygD/c6lp80SSAK6IxeaVIn2Bd7iceJjVu4sMd+SeHJMcSuNgKNe8EHofwIDAQAB",
   "version": "1.1.0",
   "description": "Quickly save any web page as a task in Google Tasks with a single click",
   "permissions": [
