@@ -3,6 +3,7 @@
  * Handles the popup UI and task creation flow
  */
 
+import { getToken, isAuthenticated } from '../services/auth'
 import { addSavedUrl } from '../services/storage'
 import { createTaskFromOptions } from '../services/task-creation'
 import { isAppError, MAX_NOTES_LENGTH } from '../types'
@@ -18,6 +19,8 @@ let errorContainer: HTMLElement | null
 let errorMessageElement: HTMLElement | null
 let retryButton: HTMLElement | null
 let successContainer: HTMLElement | null
+let authContainer: HTMLElement | null
+let signinButton: HTMLElement | null
 
 /**
  * Initialize DOM element references.
@@ -34,6 +37,8 @@ export function initElements(): void {
   errorMessageElement = document.getElementById('error-message')
   retryButton = document.getElementById('retry-button')
   successContainer = document.getElementById('success-container')
+  authContainer = document.getElementById('auth-container')
+  signinButton = document.getElementById('signin-button')
 }
 
 /**
@@ -79,9 +84,21 @@ function handleDueDateChange(): void {
 }
 
 /**
+ * Show auth state (not signed in)
+ */
+function showAuth(): void {
+  authContainer?.classList.remove('hidden')
+  taskForm?.classList.add('hidden')
+  loadingContainer?.classList.add('hidden')
+  errorContainer?.classList.add('hidden')
+  successContainer?.classList.add('hidden')
+}
+
+/**
  * Show loading state
  */
 function showLoading(): void {
+  authContainer?.classList.add('hidden')
   taskForm?.classList.add('hidden')
   loadingContainer?.classList.remove('hidden')
   errorContainer?.classList.add('hidden')
@@ -92,6 +109,7 @@ function showLoading(): void {
  * Show form state
  */
 function showForm(): void {
+  authContainer?.classList.add('hidden')
   taskForm?.classList.remove('hidden')
   loadingContainer?.classList.add('hidden')
   errorContainer?.classList.add('hidden')
@@ -217,9 +235,19 @@ function handleRetry(): void {
 }
 
 /**
+ * Handle sign-in button click
+ */
+async function handleSignIn(): Promise<void> {
+  const token = await getToken(true)
+  if (token) {
+    showForm()
+  }
+}
+
+/**
  * Initialize popup
  */
-function init(): void {
+async function init(): Promise<void> {
   initElements()
   setupDateInput()
 
@@ -238,8 +266,21 @@ function init(): void {
     handleRetry()
   })
 
+  // Set up sign-in button
+  signinButton?.addEventListener('click', () => {
+    void handleSignIn()
+  })
+
   // Initialize notes counter
   handleNotesInput()
+
+  // Check auth state — show form or sign-in prompt
+  const authed = await isAuthenticated()
+  if (authed) {
+    showForm()
+  } else {
+    showAuth()
+  }
 }
 
 // Run on DOM ready

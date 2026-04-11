@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Send to Google Tasks",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Quickly save any web page as a task in Google Tasks with a single click",
   "permissions": [
     "activeTab",
