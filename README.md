@@ -84,7 +84,9 @@ npm run zip           # Package for Web Store
 
 1. Update version in `src/manifest.json`
 2. `git tag v1.0.0 && git push origin v1.0.0`
-3. Publish a GitHub Release – CI builds and attaches the ZIP automatically
+3. Publish a GitHub Release – CI builds and attaches `send-to-gtasks-extension-vX.Y.Z.zip` automatically
+
+To sideload from a release: download `send-to-gtasks-extension-vX.Y.Z.zip` (not "Source code"), extract it to a folder, then load unpacked from that folder at `chrome://extensions/`.
 
 ### Conventions
 
