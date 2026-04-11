@@ -1,10 +1,23 @@
-# Privacy Policy for Send to Google Tasks
+# Privacy Policy
 
-**Last updated: April 10, 2026**
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mattfinlayson/send-to-gtasks/main/src/icons/icon-128.png" alt="Send to Google Tasks" width="64">
+</p>
+
+<p align="center"><strong>Send to Google Tasks</strong></p>
+
+<p align="center">
+  <a href="https://github.com/mattfinlayson/send-to-gtasks">🏠 GitHub</a> • 
+  <a href="https://chromewebstore.google.com/">📦 Chrome Web Store</a>
+</p>
+
+---
+
+**Last updated:** April 10, 2026
 
 ## Data Collection
 
-Send to Google Tasks does not collect, store, or transmit any personal data to external servers.
+Send to Google Tasks does **not** collect, store, or transmit any personal data to external servers. Period.
 
 ## What This Extension Does
 
@@ -16,13 +29,19 @@ This extension uses the Google Tasks API, which requires Google account authenti
 
 ## Permissions
 
-This extension requests the following permissions:
-
-- **activeTab** — to read the current page title and URL
-- **storage** — to save your task list preference locally
-- **identity** — to authenticate with your Google account
-- **alarms** — to clear notification badges after a few seconds
+| Permission | Purpose |
+|------------|---------|
+| `activeTab` | Read the current page title and URL |
+| `storage` | Save your task list preference locally |
+| `identity` | Authenticate with your Google account |
+| `alarms` | Clear notification badges after a few seconds |
 
 ## Contact
 
-For questions about this extension, open an issue at [github.com/mattfinlayson/send-to-gtask](https://github.com/mattfinlayson/send-to-gtask).
+Questions or concerns? [Open an issue](https://github.com/mattfinlayson/send-to-gtasks/issues) on GitHub.
+
+---
+
+<p align="center">
+  <sub>Licensed under <a href="https://github.com/mattfinlayson/send-to-gtasks/blob/main/LICENSE">MIT</a></sub>
+</p>
