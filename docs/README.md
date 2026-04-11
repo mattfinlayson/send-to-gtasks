@@ -82,9 +82,14 @@ npm run zip           # Package for Web Store
 
 ### Releasing
 
-1. Update version in `src/manifest.json`
-2. `git tag v1.0.0 && git push origin v1.0.0`
-3. Publish a GitHub Release – CI builds and attaches the ZIP automatically
+Releases are version-gated. The release workflow only triggers when a GitHub Release is published — it validates the tag matches the manifest version, builds, and attaches the ZIP.
+
+1. Update `"version"` in `src/manifest.json` and the footer in `src/options/options.html`
+2. Commit and push: `git commit -m "chore: release vX.Y.Z" && git push`
+3. Tag the commit: `git tag vX.Y.Z && git push origin vX.Y.Z`
+4. Go to **GitHub → Releases → Draft a new release**, select the tag, add release notes, and publish
+5. CI builds and attaches `send-to-gtask.zip` to the release automatically
+6. Download the ZIP and upload it to the Chrome Web Store
 
 ### Conventions
 
