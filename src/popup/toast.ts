@@ -35,7 +35,6 @@ export async function showToast(config: ToastConfig): Promise<void> {
   const icons: Record<ToastType, string> = {
     success: '✓',
     error: '✗',
-    queued: '⏳',
     duplicate: '⚠',
   }
   iconElement.textContent = icons[config.type] || ''

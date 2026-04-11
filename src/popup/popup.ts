@@ -127,37 +127,6 @@ function showSuccess(): void {
 }
 
 /**
- * Show queued state (task saved offline)
- */
-function showQueued(): void {
-  taskForm?.classList.add('hidden')
-  loadingContainer?.classList.add('hidden')
-  errorContainer?.classList.add('hidden')
-  successContainer?.classList.remove('hidden')
-
-  // Update icon to indicate queued (hourglass)
-  const successIcon = successContainer?.querySelector('#success-icon')
-  if (successIcon) {
-    successIcon.textContent = '⏳'
-    successIcon.classList.add('queued-icon')
-  }
-
-  // Update success message to indicate queued
-  const successMessage = successContainer?.querySelector('#success-message')
-  if (successMessage) {
-    successMessage.textContent = 'Saved offline - will sync when online'
-  }
-
-  // Notify service worker
-  notifyServiceWorker('TASK_CREATED')
-
-  // Auto-close popup after longer delay for queued tasks
-  setTimeout(() => {
-    window.close()
-  }, 3000)
-}
-
-/**
  * Show error state with message
  */
 function showError(message: string): void {
@@ -226,23 +195,14 @@ async function createTaskWithForm(): Promise<void> {
   showLoading()
 
   try {
-    // Create task with options
-    const result = await createTaskFromOptions({
+    await createTaskFromOptions({
       title: tab.title,
       url: tab.url,
       notes: notes || undefined,
       dueDate: dueDate || undefined,
     })
-
-    // Check if task was queued (offline) or created successfully
-    if (result.success) {
-      // Add URL to saved index
-      await addSavedUrl(tab.url)
-      showSuccess()
-    } else {
-      // Task was queued for later sync
-      showQueued()
-    }
+    await addSavedUrl(tab.url)
+    showSuccess()
   } catch (error) {
     const message = getErrorMessage(error)
     showError(message)

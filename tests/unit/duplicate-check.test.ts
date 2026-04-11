@@ -5,11 +5,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { type DuplicateCheckResult, checkDuplicate } from '../../src/services/duplicate-check'
 import { normalizeUrl } from '../../src/utils/url'
-import { getOfflineQueue, getSavedUrls } from '../../src/services/storage'
+import { getSavedUrls } from '../../src/services/storage'
 
 // Mock storage module
 vi.mock('../../src/services/storage', () => ({
-  getOfflineQueue: vi.fn(),
   getSavedUrls: vi.fn()
 }))
 
@@ -52,15 +51,15 @@ describe('duplicate detection service', () => {
     })
 
     it('should support queue match type', () => {
-      const result: DuplicateCheckResult = { isDuplicate: true, matchedIn: 'queue' }
+      const result: DuplicateCheckResult = { isDuplicate: true, matchedIn: 'synced' }
       expect(result.isDuplicate).toBe(true)
-      expect(result.matchedIn).toBe('queue')
+      expect(result.matchedIn).toBe('synced')
     })
 
     it('should support both match type', () => {
-      const result: DuplicateCheckResult = { isDuplicate: true, matchedIn: 'both' }
+      const result: DuplicateCheckResult = { isDuplicate: true, matchedIn: 'synced' }
       expect(result.isDuplicate).toBe(true)
-      expect(result.matchedIn).toBe('both')
+      expect(result.matchedIn).toBe('synced')
     })
 
     it('should support null for non-duplicate', () => {
@@ -71,23 +70,11 @@ describe('duplicate detection service', () => {
   })
 
   describe('checkDuplicate', () => {
-    const baseQueuedTask = {
-      id: '1',
-      title: 'Test',
-      url: 'https://example.com/page',
-      status: 'pending' as const,
-      taskListId: '@default',
-      createdAt: Date.now(),
-      lastRetryAt: Date.now(),
-      retryCount: 0
-    }
-
     it('should return matchedIn: synced when URL exists in saved URLs', async () => {
       vi.mocked(getSavedUrls).mockResolvedValue({
         urls: ['https://example.com/page'],
         lastUpdated: Date.now()
       })
-      vi.mocked(getOfflineQueue).mockResolvedValue({ tasks: [], lastSyncAt: Date.now() })
 
       const result = await checkDuplicate('https://example.com/page')
 
@@ -95,38 +82,8 @@ describe('duplicate detection service', () => {
       expect(result.matchedIn).toBe('synced')
     })
 
-    it('should return matchedIn: queue when URL exists in offline queue', async () => {
-      vi.mocked(getSavedUrls).mockResolvedValue({ urls: [], lastUpdated: Date.now() })
-      vi.mocked(getOfflineQueue).mockResolvedValue({
-        tasks: [{ ...baseQueuedTask }],
-        lastSyncAt: Date.now()
-      })
-
-      const result = await checkDuplicate('https://example.com/page')
-
-      expect(result.isDuplicate).toBe(true)
-      expect(result.matchedIn).toBe('queue')
-    })
-
-    it('should return matchedIn: both when URL exists in both saved URLs and queue', async () => {
-      vi.mocked(getSavedUrls).mockResolvedValue({
-        urls: ['https://example.com/page'],
-        lastUpdated: Date.now()
-      })
-      vi.mocked(getOfflineQueue).mockResolvedValue({
-        tasks: [{ ...baseQueuedTask }],
-        lastSyncAt: Date.now()
-      })
-
-      const result = await checkDuplicate('https://example.com/page')
-
-      expect(result.isDuplicate).toBe(true)
-      expect(result.matchedIn).toBe('both')
-    })
-
     it('should return not duplicate when URL not found', async () => {
       vi.mocked(getSavedUrls).mockResolvedValue({ urls: [], lastUpdated: Date.now() })
-      vi.mocked(getOfflineQueue).mockResolvedValue({ tasks: [], lastSyncAt: Date.now() })
 
       const result = await checkDuplicate('https://example.com/new-page')
 
@@ -139,7 +96,6 @@ describe('duplicate detection service', () => {
         urls: ['https://example.com/page'],
         lastUpdated: Date.now()
       })
-      vi.mocked(getOfflineQueue).mockResolvedValue({ tasks: [], lastSyncAt: Date.now() })
 
       const result = await checkDuplicate('https://www.example.com/page')
 
@@ -152,7 +108,6 @@ describe('duplicate detection service', () => {
         urls: ['https://example.com/page'],
         lastUpdated: Date.now()
       })
-      vi.mocked(getOfflineQueue).mockResolvedValue({ tasks: [], lastSyncAt: Date.now() })
 
       const result = await checkDuplicate('https://example.com/page/')
 
@@ -165,7 +120,6 @@ describe('duplicate detection service', () => {
         urls: ['https://EXAMPLE.COM/page'],
         lastUpdated: Date.now()
       })
-      vi.mocked(getOfflineQueue).mockResolvedValue({ tasks: [], lastSyncAt: Date.now() })
 
       const result = await checkDuplicate('https://example.com/page')
 

@@ -31,49 +31,12 @@ export async function handleShortcutCommand(command: string): Promise<void> {
 }
 
 /**
- * Perform quick save - create task directly and show toast
+ * Perform quick save - create task directly
  */
 async function performQuickSave(): Promise<void> {
   try {
-    // Create task for the current active tab
-    const task = await createTaskForCurrentPage()
-
-    if (task) {
-      // Show success toast
-      await showToast(`Task created: ${task.title}`)
-    } else {
-      // Show error toast
-      await showToast('Failed to create task. Check your connection.')
-    }
+    await createTaskForCurrentPage()
   } catch (error) {
     console.error('Quick save failed:', error)
-    await showToast('Failed to create task. Check your connection.')
-  }
-}
-
-/**
- * Show a toast notification for quick save feedback
- * Uses chrome.alarms instead of setTimeout for MV3 service worker compatibility
- * Service workers can be terminated at any time, so alarms ensure the
- * notification is cleared even if the worker is killed.
- */
-async function showToast(message: string): Promise<void> {
-  // For now, use chrome.notifications if available
-  // This provides a simple notification without needing to open a popup
-  if (typeof chrome.notifications !== 'undefined') {
-    const notificationId = `quick-save-${Date.now()}`
-    chrome.notifications.create(notificationId, {
-      type: 'basic',
-      iconUrl: 'icons/icon-48.png',
-      title: 'Send to Google Tasks',
-      message: message,
-      priority: 2,
-    })
-
-    // Use chrome.alarms instead of setTimeout for MV3 compatibility
-    // Schedule notification clear 2 seconds from now
-    await chrome.alarms.create(`clear-notification-${notificationId}`, {
-      when: Date.now() + 2000,
-    })
   }
 }

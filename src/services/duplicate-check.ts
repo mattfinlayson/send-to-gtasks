@@ -4,18 +4,18 @@
  */
 
 import { normalizeUrl } from '../utils/url'
-import { getOfflineQueue, getSavedUrls } from './storage'
+import { getSavedUrls } from './storage'
 
 /**
  * Result of a duplicate check
  */
 export interface DuplicateCheckResult {
   isDuplicate: boolean
-  matchedIn: 'synced' | 'queue' | 'both' | null
+  matchedIn: 'synced' | null
 }
 
 /**
- * Check if a URL is a duplicate (exists in saved URLs or pending queue)
+ * Check if a URL is a duplicate (exists in saved URLs)
  */
 export async function checkDuplicate(url: string): Promise<DuplicateCheckResult> {
   const normalizedUrl = normalizeUrl(url)
@@ -24,16 +24,8 @@ export async function checkDuplicate(url: string): Promise<DuplicateCheckResult>
   const urlIndex = await getSavedUrls()
   const savedMatch = urlIndex.urls.some((savedUrl) => normalizeUrl(savedUrl) === normalizedUrl)
 
-  // Check offline queue
-  const queue = await getOfflineQueue()
-  const queueMatch = queue.tasks.some((task) => normalizeUrl(task.url) === normalizedUrl)
-
-  if (savedMatch && queueMatch) {
-    return { isDuplicate: true, matchedIn: 'both' }
-  } else if (savedMatch) {
+  if (savedMatch) {
     return { isDuplicate: true, matchedIn: 'synced' }
-  } else if (queueMatch) {
-    return { isDuplicate: true, matchedIn: 'queue' }
   }
 
   return { isDuplicate: false, matchedIn: null }

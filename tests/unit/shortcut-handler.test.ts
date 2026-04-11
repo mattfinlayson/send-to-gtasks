@@ -69,7 +69,7 @@ describe('shortcut-handler', () => {
       expect(createTaskForCurrentPage).toHaveBeenCalled()
     })
 
-    it('should show error toast when task creation fails in quick save mode', async () => {
+    it('should silently handle task creation failure in quick save mode', async () => {
       const { getQuickSaveEnabled } = await import('../../src/services/storage')
       const { createTaskForCurrentPage } = await import('../../src/services/task-creation')
 
@@ -79,13 +79,6 @@ describe('shortcut-handler', () => {
       await handleShortcutCommand('_execute_action')
 
       expect(createTaskForCurrentPage).toHaveBeenCalled()
-      expect(mockChrome.notifications.create).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          title: 'Send to Google Tasks',
-          message: expect.stringContaining('Failed to create task'),
-        }),
-      )
     })
   })
 })

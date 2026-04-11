@@ -141,35 +141,6 @@ export type ExtensionMessage =
 // ============================================================================
 
 /**
- * Status of a queued task
- */
-export type QueuedTaskStatus = 'pending' | 'syncing' | 'failed'
-
-/**
- * A task in the offline queue awaiting sync
- */
-export interface QueuedTask {
-  id: string
-  title: string
-  url: string
-  notes?: string
-  dueDate?: string
-  taskListId: string
-  createdAt: number
-  lastRetryAt: number
-  retryCount: number
-  status: QueuedTaskStatus
-}
-
-/**
- * The offline queue containing pending tasks
- */
-export interface OfflineQueue {
-  tasks: QueuedTask[]
-  lastSyncAt: number
-}
-
-/**
  * Index of saved URLs for duplicate detection
  */
 export interface SavedUrlIndex {
@@ -180,7 +151,7 @@ export interface SavedUrlIndex {
 /**
  * Notification types for toasts
  */
-export type ToastType = 'success' | 'error' | 'queued' | 'duplicate'
+export type ToastType = 'success' | 'error' | 'duplicate'
 
 /**
  * A toast notification payload
@@ -236,22 +207,11 @@ export const CACHE_TTL_MS = 5 * 60 * 1000
 export const TASKS_API_BASE_URL = 'https://tasks.googleapis.com'
 
 /**
- * Maximum retry attempts for offline queue
- */
-export const MAX_RETRY_COUNT = 3
-
-/**
- * Queue task expiry time in milliseconds (24 hours)
- */
-export const QUEUE_EXPIRY_MS = 24 * 60 * 60 * 1000
-
-/**
  * Toast notification durations in milliseconds
  */
 export const TOAST_DURATION_MS = {
   success: 2000,
   error: 0, // manual close
-  queued: 3000,
   duplicate: 0, // manual close
 } as const
 

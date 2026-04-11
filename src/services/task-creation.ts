@@ -6,7 +6,7 @@
 import { isAppError, MAX_NOTES_LENGTH, type TaskResponse } from '../types'
 import { getToken, removeToken } from './auth'
 import { extractPageInfo, getCurrentTab } from './page-capture'
-import { enqueueTask, getPreferences } from './storage'
+import { getPreferences } from './storage'
 import { createTask, TasksAPIError } from './tasks-api'
 
 /**
@@ -21,26 +21,11 @@ export interface CreateTaskOptions {
 }
 
 /**
- * Result of task creation that distinguishes between success and queued
- */
-export interface CreateTaskResult {
-  success: true
-  task: TaskResponse
-}
-
-export interface CreateTaskQueuedResult {
-  success: false
-  queued: true
-}
-
-/**
  * Create a task with extended options
  * @param options Task creation options
- * @returns The created task response or queued status
+ * @returns The created task response
  */
-export async function createTaskFromOptions(
-  options: CreateTaskOptions,
-): Promise<CreateTaskResult | CreateTaskQueuedResult> {
+export async function createTaskFromOptions(options: CreateTaskOptions): Promise<TaskResponse> {
   // Get auth token
   const token = await getToken(true)
   if (!token) {
@@ -69,38 +54,22 @@ export async function createTaskFromOptions(
 
   // Add due date if provided (RFC 3339 format)
   if (options.dueDate) {
-    // Ensure RFC 3339 format with time component
     taskRequest.due = options.dueDate.includes('T')
       ? options.dueDate
       : `${options.dueDate}T00:00:00.000Z`
   }
 
-  // Create the task, with offline queue support
   try {
-    const task = await createTask(token, listId, taskRequest)
-    return { success: true, task }
+    return await createTask(token, listId, taskRequest)
   } catch (err) {
-    // Handle auth errors
+    // Handle auth errors with token refresh
     if (isAppError(err) && err.code === 'AUTH_REQUIRED') {
       await removeToken(token)
       const freshToken = await getToken(true)
       if (!freshToken) {
         throw err
       }
-      const task = await createTask(freshToken, listId, taskRequest)
-      return { success: true, task }
-    }
-
-    // Queue task for later if network error (offline support)
-    if (isAppError(err) && err.code === 'NETWORK_ERROR' && err.retryable) {
-      await enqueueTask({
-        title: options.title,
-        url: options.url || '',
-        notes: options.notes || '',
-        dueDate: options.dueDate,
-        taskListId: listId,
-      })
-      return { success: false, queued: true }
+      return await createTask(freshToken, listId, taskRequest)
     }
 
     throw err
@@ -110,42 +79,28 @@ export async function createTaskFromOptions(
 /**
  * Create a task from the current page
  * This is the main flow: get tab info -> get preferences -> create task
- * Delegates to createTaskFromOptions for consistent handling of notes format,
- * offline queue, and error handling.
+ * Delegates to createTaskFromOptions for consistent handling of notes format
+ * and error handling.
  * @returns The created task response
  * @throws TasksAPIError if authentication fails or API call fails
  */
 export async function createTaskFromCurrentPage(): Promise<TaskResponse> {
-  // Get current tab info
   const tab = await getCurrentTab()
   if (!tab) {
     throw new Error('No active tab found')
   }
 
-  // Extract page info
   const pageInfo = extractPageInfo(tab)
 
-  // Delegate to createTaskFromOptions for consistent behavior:
-  // - Proper notes formatting with URL marker
-  // - Offline queue support for network errors
-  // - Token refresh handling
-  const result = await createTaskFromOptions({
+  return createTaskFromOptions({
     title: pageInfo.title,
     url: pageInfo.url,
   })
-
-  if (!result.success) {
-    // This shouldn't happen with createTaskFromCurrentPage since we don't
-    // pass notes, but handle it just in case
-    throw new Error('Unexpected queued result')
-  }
-
-  return result.task
 }
 
 /**
  * Create a task from the current page for quick save mode
- * Simplified version that returns just the title for toast feedback
+ * Simplified version that returns just the title for feedback
  * @returns Object with title if successful, null otherwise
  */
 export async function createTaskForCurrentPage(): Promise<{ title: string } | null> {

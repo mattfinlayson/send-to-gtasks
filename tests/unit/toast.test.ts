@@ -39,7 +39,7 @@ describe('toast popup', () => {
 
   describe('toast types', () => {
     it('should define all required toast types', () => {
-      const expectedTypes = ['success', 'error', 'queued', 'duplicate'] as const
+      const expectedTypes = ['success', 'error', 'duplicate'] as const
       const actualTypes = Object.keys(TOAST_DURATION_MS)
 
       expectedTypes.forEach((type) => {
@@ -50,7 +50,6 @@ describe('toast popup', () => {
     it('should have duration defined for each type', () => {
       expect(typeof TOAST_DURATION_MS.success).toBe('number')
       expect(typeof TOAST_DURATION_MS.error).toBe('number')
-      expect(typeof TOAST_DURATION_MS.queued).toBe('number')
       expect(typeof TOAST_DURATION_MS.duplicate).toBe('number')
     })
   })
@@ -64,16 +63,8 @@ describe('toast popup', () => {
       expect(TOAST_DURATION_MS.error).toBe(0)
     })
 
-    it('should have queued duration of 3 seconds', () => {
-      expect(TOAST_DURATION_MS.queued).toBe(3000)
-    })
-
     it('should have duplicate duration of 0 (manual close)', () => {
       expect(TOAST_DURATION_MS.duplicate).toBe(0)
-    })
-
-    it('should have longer duration for queued than success', () => {
-      expect(TOAST_DURATION_MS.queued).toBeGreaterThan(TOAST_DURATION_MS.success)
     })
   })
 
@@ -82,7 +73,6 @@ describe('toast popup', () => {
       const icons: Record<string, string> = {
         success: '✓',
         error: '✗',
-        queued: '⏳',
         duplicate: '⚠',
       }
       expect(icons.success).toBe('✓')
@@ -92,27 +82,15 @@ describe('toast popup', () => {
       const icons: Record<string, string> = {
         success: '✓',
         error: '✗',
-        queued: '⏳',
         duplicate: '⚠',
       }
       expect(icons.error).toBe('✗')
-    })
-
-    it('should map queued to hourglass', () => {
-      const icons: Record<string, string> = {
-        success: '✓',
-        error: '✗',
-        queued: '⏳',
-        duplicate: '⚠',
-      }
-      expect(icons.queued).toBe('⏳')
     })
 
     it('should map duplicate to warning', () => {
       const icons: Record<string, string> = {
         success: '✓',
         error: '✗',
-        queued: '⏳',
         duplicate: '⚠',
       }
       expect(icons.duplicate).toBe('⚠')
