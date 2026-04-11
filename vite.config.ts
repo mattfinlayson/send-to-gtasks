@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [
     viteStaticCopy({
       targets: [
-        { src: 'src/manifest.json', dest: '.' },
-        { src: 'src/icons/*', dest: 'icons' }
+        { src: 'src/manifest.json', dest: '.', rename: { stripBase: true } },
+        { src: 'src/icons/*', dest: 'icons', rename: { stripBase: true } }
       ]
     })
   ],

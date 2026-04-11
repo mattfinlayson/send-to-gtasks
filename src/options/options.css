@@ -94,6 +94,13 @@ body {
   max-width: 520px;
 }
 
+/* Main content area */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 /* Header */
 .header {
   display: flex;
@@ -442,7 +449,7 @@ kbd {
 }
 
 /* Auth state */
-.auth-state {
+.auth-required {
   margin-top: 20px;
 }
 

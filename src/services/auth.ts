@@ -29,6 +29,7 @@ export async function getToken(interactive: boolean): Promise<string | null> {
   return new Promise((resolve) => {
     chrome.identity.getAuthToken({ interactive }, (result) => {
       if (chrome.runtime.lastError) {
+        console.error('getAuthToken error:', chrome.runtime.lastError.message)
         resolve(null)
         return
       }

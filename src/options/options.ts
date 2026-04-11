@@ -181,8 +181,20 @@ export async function loadData(forceRefresh: boolean = false): Promise<void> {
       return
     }
 
-    // Fetch task lists
-    currentLists = await getTaskLists(token, forceRefresh)
+    // Try to fetch task lists (may fail if token expired)
+    let lists: TaskList[] = []
+    try {
+      lists = await getTaskLists(token, forceRefresh)
+    } catch (error) {
+      // If auth fails, show sign in state
+      if (isAppError(error) && error.code === 'AUTH_REQUIRED') {
+        showState('auth')
+        return
+      }
+      throw error
+    }
+
+    currentLists = lists
 
     // Get current preferences
     const preferences = await getPreferences()
@@ -233,10 +245,14 @@ export async function handleSignIn(): Promise<void> {
     const token = await getToken(true)
     if (token) {
       await loadData()
+    } else {
+      const authPrompt = document.querySelector('.auth-prompt')
+      if (authPrompt) {
+        authPrompt.textContent = 'Sign in failed. Please try again.'
+      }
     }
   } catch (error) {
     console.error('Sign in failed:', error)
-    // Show error in auth state
     const authPrompt = document.querySelector('.auth-prompt')
     if (authPrompt) {
       authPrompt.textContent = 'Sign in failed. Please try again.'

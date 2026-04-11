@@ -121,7 +121,7 @@ function setupDOM(): void {
         <button id="retry-button" class="button primary">Try Again</button>
       </div>
 
-      <div id="auth-required" class="auth-state hidden">
+      <div id="auth-required" class="auth-required hidden">
         <div class="section-label">Account</div>
         <div class="card">
           <p class="auth-prompt">Sign in to save tasks to your Google account</p>
@@ -160,8 +160,11 @@ describe('Options Page', () => {
       initElements()
       await loadData()
 
-      expect(document.getElementById('auth-required')?.classList.contains('hidden')).toBe(false)
+      const authElement = document.getElementById('auth-required')
+      expect(authElement?.classList.contains('hidden')).toBe(false)
       expect(document.getElementById('content')?.classList.contains('hidden')).toBe(true)
+      // Verify the element is actually visible (has correct CSS class for styling)
+      expect(authElement?.classList.contains('auth-required')).toBe(true)
     })
 
     it('should populate dropdown with task lists', async () => {
@@ -227,7 +230,9 @@ describe('Options Page', () => {
       initElements()
       await loadData()
 
-      expect(document.getElementById('auth-required')?.classList.contains('hidden')).toBe(false)
+      const authElement = document.getElementById('auth-required')
+      expect(authElement?.classList.contains('hidden')).toBe(false)
+      expect(authElement?.classList.contains('auth-required')).toBe(true)
     })
 
     it('should display account email', async () => {
@@ -343,6 +348,7 @@ describe('Options Page', () => {
       // Auth required section should be visible
       const authRequired = document.getElementById('auth-required')
       expect(authRequired?.classList.contains('hidden')).toBe(false)
+      expect(authRequired?.classList.contains('auth-required')).toBe(true)
     })
 
     it('should show auth state even if logout fails', async () => {
@@ -355,6 +361,7 @@ describe('Options Page', () => {
       // Auth required section should be visible
       const authRequired = document.getElementById('auth-required')
       expect(authRequired?.classList.contains('hidden')).toBe(false)
+      expect(authRequired?.classList.contains('auth-required')).toBe(true)
     })
   })
 
